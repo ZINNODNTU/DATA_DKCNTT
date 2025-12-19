@@ -44,6 +44,10 @@
   👥 Số sinh viên: 0
 </div>
 
+<div id="genderStats" style="margin-bottom:10px; font-weight:bold;">
+  👨 Nam: 0 | 👩 Nữ: 0
+</div>
+
 <div id="status" class="loading">⏳ Đang tải dữ liệu...</div>
 
 <table>
@@ -53,6 +57,7 @@
       <th>Họ tên</th>
       <th>Lớp</th>
       <th>SĐT</th>
+      <th>Giới tính</th>
     </tr>
   </thead>
   <tbody id="data"></tbody>
@@ -66,6 +71,7 @@ let allData = [];
 const statusDiv = document.getElementById("status");
 const select = document.getElementById("lopSelect");
 const countDiv = document.getElementById("count");
+const genderDiv = document.getElementById("genderStats");
 const tbody = document.getElementById("data");
 
 // ===== LOAD DATA =====
@@ -75,9 +81,7 @@ fetch(url)
     return res.json();
   })
   .then(data => {
-    if (!data || data.length === 0) {
-      throw new Error("Sheet không có dữ liệu");
-    }
+    if (!data || data.length === 0) throw new Error("Sheet không có dữ liệu");
 
     // ===== Lọc trùng dựa trên MSSV =====
     const uniqueMap = new Map();
@@ -105,45 +109,37 @@ fetch(url)
 select.addEventListener("change", function () {
   const value = this.value;
 
-  let displayData = [];
-
-  if (value === "ALL") {
-    displayData = allData;
-  } else {
-    displayData = allData.filter(
-      row => row["Chi đoàn trực thuộc:"] === value
-    );
-  }
+  let displayData = value === "ALL" ? allData : allData.filter(row => row["Chi đoàn trực thuộc:"] === value);
 
   renderTable(displayData);
 });
 
-// ===== RENDER TABLE + COUNT =====
+// ===== RENDER TABLE + COUNT + GENDER =====
 function renderTable(data) {
   tbody.innerHTML = "";
 
   // Đếm sinh viên
   countDiv.textContent = `👥 Số sinh viên: ${data.length}`;
 
+  // Thống kê giới tính
+  const maleCount = data.filter(row => row["Giới tính:"]?.toLowerCase() === "nam").length;
+  const femaleCount = data.filter(row => row["Giới tính:"]?.toLowerCase() === "nữ").length;
+  genderDiv.textContent = `👨 Nam: ${maleCount} | 👩 Nữ: ${femaleCount}`;
+
   if (data.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="4">Không có dữ liệu</td>
-      </tr>
-    `;
+    tbody.innerHTML = `<tr><td colspan="5">Không có dữ liệu</td></tr>`;
     return;
   }
 
   data.forEach(row => {
     const tr = document.createElement("tr");
-
     tr.innerHTML = `
       <td>${row["Mã số sinh viên:"] || ""}</td>
       <td>${row["Họ Tên:"] || ""}</td>
       <td>${row["Chi đoàn trực thuộc:"] || ""}</td>
       <td>${row["Số điện thoại:"] || ""}</td>
+      <td>${row["Giới tính:"] || ""}</td>
     `;
-
     tbody.appendChild(tr);
   });
 }
