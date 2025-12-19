@@ -18,34 +18,30 @@
 <h2>Chọn lớp</h2>
 
 <select id="lopSelect" disabled>
-<option value="ALL">📋 Tất cả</option>
-
-<option value="22DTH1">22DTH1</option>
-<option value="22DTH2">22DTH2</option>
-<option value="22DTH3">22DTH3</option>
-<option value="22DTH4">22DTH4</option>
-<option value="22DTH5">22DTH5</option>
-<option value="22DTH6">22DTH6</option>
-<option value="22DTH7">22DTH7</option>
-
-<option value="23DTH1">23DTH1</option>
-<option value="23DTH2">23DTH2</option>
-<option value="23DTH3">23DTH3</option>
-<option value="23DTH4">23DTH4</option>
-<option value="23DTH5">23DTH5</option>
-
-<option value="24DTH1">24DTH1</option>
-<option value="24DTH2">24DTH2</option>
-<option value="24DTH3">24DTH3</option>
-<option value="24DPM1">24DPM1</option>
-
-<option value="25DTH">25DTH</option>
-<option value="25DPM">25DPM</option>
-<option value="25DTN">25DTN</option>
-
+  <option value="ALL">📋 Tất cả</option>
+  <option value="22DTH1">22DTH1</option>
+  <option value="22DTH2">22DTH2</option>
+  <option value="22DTH3">22DTH3</option>
+  <option value="22DTH4">22DTH4</option>
+  <option value="22DTH5">22DTH5</option>
+  <option value="22DTH6">22DTH6</option>
+  <option value="22DTH7">22DTH7</option>
+  <option value="23DTH1">23DTH1</option>
+  <option value="23DTH2">23DTH2</option>
+  <option value="23DTH3">23DTH3</option>
+  <option value="23DTH4">23DTH4</option>
+  <option value="23DTH5">23DTH5</option>
+  <option value="24DTH1">24DTH1</option>
+  <option value="24DTH2">24DTH2</option>
+  <option value="24DTH3">24DTH3</option>
+  <option value="24DPM1">24DPM1</option>
+  <option value="25DTH">25DTH</option>
+  <option value="25DPM">25DPM</option>
+  <option value="25DTN">25DTN</option>
 </select>
+
 <div id="count" style="margin:10px 0; font-weight:bold;">
-👥 Số sinh viên: 0
+  👥 Số sinh viên: 0
 </div>
 
 <div id="status" class="loading">⏳ Đang tải dữ liệu...</div>
@@ -83,14 +79,22 @@ fetch(url)
       throw new Error("Sheet không có dữ liệu");
     }
 
-    allData = data;
+    // ===== Lọc trùng dựa trên MSSV =====
+    const uniqueMap = new Map();
+    data.forEach(row => {
+      const mssv = row["Mã số sinh viên:"];
+      if (mssv && !uniqueMap.has(mssv)) {
+        uniqueMap.set(mssv, row);
+      }
+    });
+    allData = Array.from(uniqueMap.values());
+
     statusDiv.textContent = "✅ Tải dữ liệu thành công";
+    statusDiv.className = "";
     select.disabled = false;
 
     // Hiển thị mặc định: TẤT CẢ
     renderTable(allData);
-
-    console.log("Dòng đầu tiên:", allData[0]);
   })
   .catch(err => {
     statusDiv.textContent = "❌ Lỗi: " + err.message;
@@ -144,7 +148,6 @@ function renderTable(data) {
   });
 }
 </script>
-
 
 </body>
 </html>
