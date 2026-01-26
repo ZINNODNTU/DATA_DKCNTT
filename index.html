@@ -1,148 +1,561 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>Danh sách sinh viên theo lớp</title>
-<style>
-  body { font-family: Arial; padding: 20px; }
-  select { padding: 6px; margin-bottom: 10px; }
-  table { border-collapse: collapse; width: 100%; }
-  th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-  th { background: #f2f2f2; }
-  .error { color: red; margin-top: 10px; }
-  .loading { color: #555; margin-top: 10px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đoàn viên & Sổ Đoàn</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Thư viện SheetJS để xuất Excel chuẩn -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-body: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 20px; }
+
+        .container { max-width: 1400px; margin: 0 auto; } /* Tăng chiều rộng để hiển thị đủ cột */
+
+        /* Header & Tabs */
+        .header-section { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px; }
+        h2 { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0; }
+        
+        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 2px; overflow-x: auto; }
+        .tab-btn { 
+            padding: 10px 20px; border: none; background: none; cursor: pointer; 
+            font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent;
+            margin-bottom: -4px; transition: 0.2s; white-space: nowrap;
+        }
+        .tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+
+        .controls-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+        select, input {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s;
+            background: white;
+        }
+        select:focus, input:focus { border-color: var(--primary-color); }
+
+        .stats-group { display: flex; gap: 10px; flex-grow: 1; align-items: center; flex-wrap: wrap; }
+        .stat-item {
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .btn-action {
+            color: white; border: none; padding: 10px 20px;
+            border-radius: 8px; font-weight: 600; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; gap: 8px;
+            text-decoration: none; font-size: 14px;
+        }
+        .btn-success { background: var(--success); }
+        .btn-warning { background: var(--warning); }
+        .btn-danger { background: var(--danger); }
+
+        /* Table Style */
+        .content-view { display: none; }
+        .content-view.active { display: block; }
+
+        .table-container {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1000px; }
+        th {
+            background: #f8fafc;
+            padding: 14px 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        td { padding: 14px 20px; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; }
+        tr:hover { background-color: #f8fafc; }
+
+        .tag { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
+        .tag-nam { background: #e0f2fe; color: #0369a1; }
+        .tag-nu { background: #fdf2f8; color: #be185d; }
+        .tag-hard { background: #fef3c7; color: #92400e; }
+
+        /* MÀU SẮC TRẠNG THÁI SỔ ĐOÀN */
+        .status-ok { background: #dcfce7; color: #166534; } /* Có ngày */
+        .status-warn { background: #fef9c3; color: #854d0e; } /* Có sổ nhưng "x" */
+        .status-missing { background: #fee2e2; color: #991b1b; } /* Chưa nộp */
+
+        .mssv-link { color: var(--primary-color); font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+        .summary-text { font-size: 13px; color: #475569; line-height: 1.5; max-width: 500px; }
+        .note-text { font-style: italic; color: #64748b; font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Modal */
+        .modal {
+            display: none; position: fixed; inset: 0;
+            background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px);
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--white); width: 550px; max-width: 90%;
+            margin: 80px auto; border-radius: 16px; overflow: hidden;
+        }
+        .modal-header { padding: 20px; background: #f8fafc; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
+        .modal-body { padding: 20px; max-height: 400px; overflow-y: auto; }
+
+        #status { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+
+        @media (max-width: 768px) {
+            .controls-card { flex-direction: column; align-items: stretch; }
+        }
+    </style>
 </head>
 <body>
 
-<h2>Chọn lớp</h2>
+<div class="container">
+    <div class="header-section">
+        <div>
+            <h2>Hệ thống Quản lý Sinh viên & Sổ Đoàn</h2>
+            <div id="status">⏳ Đang tải dữ liệu...</div>
+        </div>
+    </div>
 
-<select id="lopSelect" disabled>
-  <option value="ALL">📋 Tất cả</option>
-  <option value="22DTH1">22DTH1</option>
-  <option value="22DTH2">22DTH2</option>
-  <option value="22DTH3">22DTH3</option>
-  <option value="22DTH4">22DTH4</option>
-  <option value="22DTH5">22DTH5</option>
-  <option value="22DTH6">22DTH6</option>
-  <option value="22DTH7">22DTH7</option>
-  <option value="23DTH1">23DTH1</option>
-  <option value="23DTH2">23DTH2</option>
-  <option value="23DTH3">23DTH3</option>
-  <option value="23DTH4">23DTH4</option>
-  <option value="23DTH5">23DTH5</option>
-  <option value="24DTH1">24DTH1</option>
-  <option value="24DTH2">24DTH2</option>
-  <option value="24DTH3">24DTH3</option>
-  <option value="24DPM1">24DPM1</option>
-  <option value="25DTH">25DTH</option>
-  <option value="25DPM">25DPM</option>
-  <option value="25DTN">25DTN</option>
-</select>
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="switchTab('list', this)">📋 Danh sách sinh viên</button>
+        <button class="tab-btn" onclick="switchTab('difficulty', this)">🏠 Diện khó khăn</button>
+        <button class="tab-btn" onclick="switchTab('stats', this)">📊 Thống kê báo cáo</button>
+    </div>
 
-<div id="count" style="margin:10px 0; font-weight:bold;">
-  👥 Số sinh viên: 0
+    <!-- TAB 1: DANH SÁCH CHÍNH -->
+    <div id="listView" class="content-view active">
+        <div class="controls-card">
+            <div class="input-group">
+                <label>Chi đoàn</label>
+                <select id="lopSelect" disabled onchange="applyFilters()"><option value="ALL">Tất cả lớp</option></select>
+            </div>
+            
+            <!-- Thêm bộ lọc Trạng thái Sổ -->
+            <div class="input-group">
+                <label>Trạng thái Sổ</label>
+                <select id="bookSelect" onchange="applyFilters()">
+                    <option value="ALL">Tất cả</option>
+                    <option value="OK">✅ Đã nộp (Có ngày)</option>
+                    <option value="X">⚠️ Thiếu thông tin (x)</option>
+                    <option value="MISSING">❌ Chưa nộp</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Giới tính</label>
+                <select id="genderSelect" onchange="applyFilters()">
+                    <option value="ALL">Tất cả</option>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                </select>
+            </div>
+            <div class="input-group" style="flex-grow: 1;">
+                <label>Tìm kiếm</label>
+                <input type="text" id="searchInput" placeholder="Tìm tên hoặc MSSV..." oninput="applyFilters()">
+            </div>
+            
+            <div class="stats-group">
+                <div class="stat-item" id="count">👥 Tổng: 0</div>
+            </div>
+
+            <button class="btn-action btn-success" onclick="exportToExcel()">📥 Xuất Excel (.xlsx)</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>MSSV</th>
+                        <th>Họ và tên</th>
+                        <th>Lớp</th>
+                        <th>SĐT</th>
+                        <th>Giới tính</th>
+                        <!-- Cột mới -->
+                        <th>Sổ Đoàn</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 2: DIỆN KHÓ KHĂN -->
+    <div id="difficultyView" class="content-view">
+        <div class="controls-card" style="justify-content: space-between;">
+            <div class="stats-group">
+                <div class="stat-item" id="diffCount">🏠 Số lượng khó khăn: 0 sinh viên</div>
+            </div>
+            <button class="btn-action btn-danger" onclick="exportDifficultyExcel()">📥 Xuất DS Khó khăn (.xlsx)</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>MSSV</th>
+                        <th>Họ và tên</th>
+                        <th>Lớp</th>
+                        <th>Tóm tắt hoàn cảnh gia đình</th>
+                    </tr>
+                </thead>
+                <tbody id="difficultyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 3: THỐNG KÊ -->
+    <div id="statsView" class="content-view">
+        <div class="controls-card" style="justify-content: space-between;">
+            <div style="font-weight: 700;">BÁO CÁO TỔNG HỢP CHI ĐOÀN</div>
+            <button class="btn-action btn-warning" onclick="exportStatsToExcel()">📥 Xuất Báo cáo (.xlsx)</button>
+        </div>
+        <div class="table-container">
+            <table id="statsTable">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên Chi đoàn</th>
+                        <th style="text-align: center;">Tổng SV</th>
+                        <th style="text-align: center;">Nam</th>
+                        <th style="text-align: center;">Nữ</th>
+                        <th style="text-align: center;">Khó Khăn</th>
+                        <!-- Thêm cột thống kê Sổ Đoàn -->
+                        <th style="text-align: center;">Đã nộp Sổ</th>
+                    </tr>
+                </thead>
+                <tbody id="statsBody"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<div id="genderStats" style="margin-bottom:10px; font-weight:bold;">
-  👨 Nam: 0 | 👩 Nữ: 0
+<!-- Modal -->
+<div id="activityModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">📌 Hoạt động</h3>
+            <span style="cursor:pointer; font-size:24px" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body" id="activityContent"></div>
+    </div>
 </div>
-
-<div id="status" class="loading">⏳ Đang tải dữ liệu...</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>MSSV</th>
-      <th>Họ tên</th>
-      <th>Lớp</th>
-      <th>SĐT</th>
-      <th>Giới tính</th>
-    </tr>
-  </thead>
-  <tbody id="data"></tbody>
-</table>
 
 <script>
-const url = "https://opensheet.elk.sh/1hd1-8lo1DxPOGrPwizlvcF7xPdyu9_dzvzwyziGjmfE/Câu trả lời biểu mẫu 1";
+    // --- LINK DỮ LIỆU ---
+    const studentUrl = "https://opensheet.elk.sh/1hd1-8lo1DxPOGrPwizlvcF7xPdyu9_dzvzwyziGjmfE/Câu trả lời biểu mẫu 1";
+    const activityUrl = "https://opensheet.elk.sh/1iJpJzdYeOEsswIRjBsb_5msc4RRkgyHCMUIYq1KUTN8/Sheet1";
+    // Link Sheet TONG HOP (Sổ Đoàn)
+    const bookUrl = "https://opensheet.elk.sh/1NGAXTWIXTLYRIx9isPSpdqviLBQolSaO9F4_BDkAETA/TONG HOP";
 
-let allData = [];
+    const COL = {
+        MSSV: "Mã số sinh viên:",
+        NAME: "Họ Tên:",
+        CLASS: "Chi đoàn trực thuộc:",
+        PHONE: "Số điện thoại:",
+        GENDER: "Giới tính:",
+        HARD: "Bạn có thuộc diện hoàn cảnh khó khăn không?",
+        FAMILY: "Tóm tắt hoàn cảnh gia đình:",
+        
+        // Cột bên Sheet TONG HOP
+        BOOK_MSSV: "MSSV",
+        BOOK_STATUS: "Đã nộp sổ Đoàn",
+        BOOK_NOTE: "Ghi chú"
+    };
 
-const statusDiv = document.getElementById("status");
-const select = document.getElementById("lopSelect");
-const countDiv = document.getElementById("count");
-const genderDiv = document.getElementById("genderStats");
-const tbody = document.getElementById("data");
+    let allData = [];
+    let filteredData = [];
+    let activityData = [];
 
-// ===== LOAD DATA =====
-fetch(url)
-  .then(res => {
-    if (!res.ok) throw new Error("Không thể kết nối Google Sheet");
-    return res.json();
-  })
-  .then(data => {
-    if (!data || data.length === 0) throw new Error("Sheet không có dữ liệu");
+    // Tải dữ liệu từ 3 nguồn
+    Promise.all([
+        fetch(studentUrl).then(r => r.json()),
+        fetch(activityUrl).then(r => r.json()),
+        fetch(bookUrl).then(r => r.json())
+    ])
+    .then(([students, activities, books]) => {
+        
+        // 1. Tạo Map để tra cứu Sổ Đoàn nhanh
+        const bookMap = {};
+        books.forEach(b => {
+            const mssv = b[COL.BOOK_MSSV]?.toString().trim();
+            if(mssv) bookMap[mssv] = b;
+        });
 
-    // ===== Lọc trùng dựa trên MSSV =====
-    const uniqueMap = new Map();
-    data.forEach(row => {
-      const mssv = row["Mã số sinh viên:"];
-      if (mssv && !uniqueMap.has(mssv)) {
-        uniqueMap.set(mssv, row);
-      }
+        const seenMssv = new Set();
+        const seenPhone = new Set();
+        allData = [];
+
+        // 2. Duyệt qua sinh viên và ghép thông tin
+        students.forEach(s => {
+            const mssv = s[COL.MSSV]?.toString().trim();
+            const phone = s[COL.PHONE]?.toString().trim();
+            if (!mssv) return;
+            if (seenMssv.has(mssv) || (phone && seenPhone.has(phone))) return;
+            seenMssv.add(mssv);
+            if (phone) seenPhone.add(phone);
+
+            // Logic xử lý Sổ Đoàn
+            const bookInfo = bookMap[mssv] || {};
+            const rawStatus = bookInfo[COL.BOOK_STATUS] || "";
+            const bookNote = bookInfo[COL.BOOK_NOTE] || "";
+
+            let displayStatus = "Chưa nộp";
+            let typeStatus = "MISSING";
+            
+            const check = rawStatus.toString().trim().toLowerCase();
+
+            if (check === "x") {
+                displayStatus = "Có sổ (Thiếu ngày)";
+                typeStatus = "X";
+            } else if (check.length > 0) {
+                displayStatus = rawStatus; // Hiển thị ngày
+                typeStatus = "OK";
+            }
+
+            // Tạo object dữ liệu hợp nhất
+            allData.push({
+                ...s,
+                bookDisplay: displayStatus,
+                bookType: typeStatus,
+                bookNote: bookNote
+            });
+        });
+
+        activityData = activities;
+        populateClassDropdown();
+        applyFilters();
+        
+        document.getElementById("status").innerHTML = "✅ Dữ liệu đã cập nhật";
+        document.getElementById("lopSelect").disabled = false;
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById("status").innerHTML = "❌ Lỗi kết nối dữ liệu";
     });
-    allData = Array.from(uniqueMap.values());
 
-    statusDiv.textContent = "✅ Tải dữ liệu thành công";
-    statusDiv.className = "";
-    select.disabled = false;
+    function populateClassDropdown() {
+        const classes = [...new Set(allData.map(item => item[COL.CLASS]).filter(Boolean))].sort();
+        const select = document.getElementById("lopSelect");
+        classes.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c; opt.textContent = c;
+            select.appendChild(opt);
+        });
+    }
 
-    // Hiển thị mặc định: TẤT CẢ
-    renderTable(allData);
-  })
-  .catch(err => {
-    statusDiv.textContent = "❌ Lỗi: " + err.message;
-    statusDiv.className = "error";
-  });
+    function switchTab(tab, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.content-view').forEach(v => v.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(tab + 'View').classList.add('active');
+        
+        if(tab === 'stats') renderStats();
+        if(tab === 'difficulty') renderDifficultyList();
+    }
 
-// ===== EVENT SELECT =====
-select.addEventListener("change", function () {
-  const value = this.value;
+    function applyFilters() {
+        const classVal = document.getElementById("lopSelect").value;
+        const genderVal = document.getElementById("genderSelect").value;
+        const bookVal = document.getElementById("bookSelect").value;
+        const searchVal = document.getElementById("searchInput").value.toLowerCase().trim();
 
-  let displayData = value === "ALL" ? allData : allData.filter(row => row["Chi đoàn trực thuộc:"] === value);
+        filteredData = allData.filter(item => {
+            const matchClass = (classVal === "ALL" || item[COL.CLASS] === classVal);
+            const matchGender = (genderVal === "ALL" || item[COL.GENDER] === genderVal);
+            
+            // Filter Sổ Đoàn
+            let matchBook = true;
+            if (bookVal !== "ALL") matchBook = item.bookType === bookVal;
 
-  renderTable(displayData);
-});
+            const matchSearch = (
+                item[COL.NAME]?.toLowerCase().includes(searchVal) || 
+                item[COL.MSSV]?.toString().includes(searchVal)
+            );
+            return matchClass && matchGender && matchSearch && matchBook;
+        });
+        renderTable();
+    }
 
-// ===== RENDER TABLE + COUNT + GENDER =====
-function renderTable(data) {
-  tbody.innerHTML = "";
+    function renderTable() {
+        const tbody = document.getElementById("dataBody");
+        tbody.innerHTML = "";
+        document.getElementById("count").textContent = `👥 Tổng: ${filteredData.length}`;
 
-  // Đếm sinh viên
-  countDiv.textContent = `👥 Số sinh viên: ${data.length}`;
+        filteredData.forEach(r => {
+            // Logic màu sắc Sổ
+            let badgeClass = "status-missing";
+            if (r.bookType === "OK") badgeClass = "status-ok";
+            if (r.bookType === "X") badgeClass = "status-warn";
 
-  // Thống kê giới tính
-  const maleCount = data.filter(row => row["Giới tính:"]?.toLowerCase() === "nam").length;
-  const femaleCount = data.filter(row => row["Giới tính:"]?.toLowerCase() === "nữ").length;
-  genderDiv.textContent = `👨 Nam: ${maleCount} | 👩 Nữ: ${femaleCount}`;
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><span class="mssv-link" onclick="showActivity('${r[COL.MSSV]}', '${r[COL.NAME]}')">${r[COL.MSSV]}</span></td>
+                <td style="font-weight:600">${r[COL.NAME] || ""}</td>
+                <td>${r[COL.CLASS] || ""}</td>
+                <td>${r[COL.PHONE] || ""}</td>
+                <td><span class="tag ${r[COL.GENDER] === 'Nam' ? 'tag-nam' : 'tag-nu'}">${r[COL.GENDER] || ""}</span></td>
+                <!-- Cột Sổ Đoàn Mới -->
+                <td><span class="tag ${badgeClass}">${r.bookDisplay}</span></td>
+                <td><div class="note-text" title="${r.bookNote}">${r.bookNote}</div></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
 
-  if (data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5">Không có dữ liệu</td></tr>`;
-    return;
-  }
+    function renderDifficultyList() {
+        const tbody = document.getElementById("difficultyBody");
+        tbody.innerHTML = "";
+        const diffList = allData.filter(item => item[COL.HARD] === "Có");
+        document.getElementById("diffCount").textContent = `🏠 Số lượng khó khăn: ${diffList.length} sinh viên`;
 
-  data.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${row["Mã số sinh viên:"] || ""}</td>
-      <td>${row["Họ Tên:"] || ""}</td>
-      <td>${row["Chi đoàn trực thuộc:"] || ""}</td>
-      <td>${row["Số điện thoại:"] || ""}</td>
-      <td>${row["Giới tính:"] || ""}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+        diffList.forEach(r => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${r[COL.MSSV]}</td>
+                <td style="font-weight:600">${r[COL.NAME]}</td>
+                <td>${r[COL.CLASS]}</td>
+                <td class="summary-text">${r[COL.FAMILY] || '<i style="color:#ccc">Không có tóm tắt</i>'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderStats() {
+        const statsBody = document.getElementById("statsBody");
+        statsBody.innerHTML = "";
+        const statsMap = {};
+        
+        allData.forEach(s => {
+            const lop = s[COL.CLASS] || "Chưa xác định";
+            if (!statsMap[lop]) statsMap[lop] = { total: 0, nam: 0, nu: 0, hard: 0, bookOk: 0 };
+            statsMap[lop].total++;
+            if (s[COL.GENDER] === "Nam") statsMap[lop].nam++;
+            else if (s[COL.GENDER] === "Nữ") statsMap[lop].nu++;
+            if (s[COL.HARD] === "Có") statsMap[lop].hard++;
+            if (s.bookType === "OK") statsMap[lop].bookOk++;
+        });
+
+        Object.keys(statsMap).sort().forEach((lop, index) => {
+            const d = statsMap[lop];
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td style="font-weight:600">${lop}</td>
+                <td style="text-align: center;">${d.total}</td>
+                <td style="text-align: center; color: #0369a1;">${d.nam}</td>
+                <td style="text-align: center; color: #be185d;">${d.nu}</td>
+                <td style="text-align: center;"><span class="${d.hard > 0 ? 'tag tag-hard' : ''}">${d.hard}</span></td>
+                <td style="text-align: center; color: #166534; font-weight:600">${d.bookOk}</td>
+            `;
+            statsBody.appendChild(tr);
+        });
+    }
+
+    // --- XUẤT EXCEL (SheetJS) ---
+
+    function exportToExcel() {
+        // Chuẩn bị dữ liệu sạch để xuất
+        const exportData = filteredData.map(item => ({
+            "MSSV": item[COL.MSSV],
+            "Họ và tên": item[COL.NAME],
+            "Lớp": item[COL.CLASS],
+            "Số điện thoại": item[COL.PHONE],
+            "Giới tính": item[COL.GENDER],
+            "Trạng thái Sổ": item.bookDisplay,
+            "Ghi chú Sổ": item.bookNote
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        // Chỉnh độ rộng cột
+        const wscols = [{wch:15}, {wch:25}, {wch:15}, {wch:15}, {wch:10}, {wch:25}, {wch:20}];
+        ws['!cols'] = wscols;
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Danh Sach Sinh Vien");
+        XLSX.writeFile(wb, "Danh_Sach_Sinh_Vien.xlsx");
+    }
+
+    function exportDifficultyExcel() {
+        const diffList = allData.filter(item => item[COL.HARD] === "Có");
+        
+        const exportData = diffList.map(item => ({
+            "MSSV": item[COL.MSSV],
+            "Họ và tên": item[COL.NAME],
+            "Lớp": item[COL.CLASS],
+            "Hoàn cảnh gia đình": item[COL.FAMILY]
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wscols = [{wch:15}, {wch:25}, {wch:15}, {wch:50}];
+        ws['!cols'] = wscols;
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Dien Kho Khan");
+        XLSX.writeFile(wb, "Sinh_Vien_Kho_Khan.xlsx");
+    }
+
+    function exportStatsToExcel() {
+        const table = document.getElementById("statsTable");
+        const ws = XLSX.utils.table_to_sheet(table);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Thong Ke");
+        XLSX.writeFile(wb, "Bao_Cao_Thong_Ke.xlsx");
+    }
+
+    function showActivity(mssv, name) {
+        const list = activityData.filter(a => a["Mã sinh viên"]?.toString() === mssv.toString());
+        document.getElementById("modalTitle").textContent = `📌 Hoạt động: ${name}`;
+        let html = list.length ? "" : "<p style='text-align:center; color:#64748b'>Chưa có ghi nhận hoạt động nào.</p>";
+        list.forEach(a => {
+            html += `<div style="padding:10px; border-left:3px solid var(--primary-color); background:#eff6ff; margin-bottom:8px; border-radius:0 8px 8px 0;">
+                <b>${a["Hoạt động"] || "N/A"}</b><br><small>${a["Ghi chú"] || ""}</small>
+            </div>`;
+        });
+        document.getElementById("activityContent").innerHTML = html;
+        document.getElementById("activityModal").style.display = "block";
+    }
+
+    function closeModal() { document.getElementById("activityModal").style.display = "none"; }
+    window.onclick = (e) => { if(e.target.className === 'modal') closeModal(); }
 </script>
 
 </body>
