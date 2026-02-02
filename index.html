@@ -2,561 +2,741 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Đoàn viên & Sổ Đoàn</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Thư viện SheetJS để xuất Excel chuẩn -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hệ thống Quản lý Sinh viên Pro</title>
     
+    <!-- Font: Inter (Font hiện đại hơn cho Web App) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Excel Library -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+
     <style>
         :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-body: #f8fafc;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --white: #ffffff;
-            --border-color: #e2e8f0;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
+            /* Modern Color Palette */
+            --primary: #3b82f6;       /* Blue 500 */
+            --primary-dark: #2563eb;  /* Blue 600 */
+            --primary-light: #eff6ff; /* Blue 50 */
+            
+            --success: #10b981;       /* Emerald 500 */
+            --success-bg: #ecfdf5;
+            
+            --warning: #f59e0b;       /* Amber 500 */
+            --warning-bg: #fffbeb;
+            
+            --danger: #ef4444;        /* Red 500 */
+            --danger-bg: #fef2f2;
+            
+            --bg-body: #f3f4f6;       /* Gray 100 */
+            --surface: #ffffff;
+            
+            --text-main: #1f2937;     /* Gray 800 */
+            --text-secondary: #6b7280;/* Gray 500 */
+            
+            --border: #e5e7eb;
+            --radius: 16px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 20px; }
-
-        .container { max-width: 1400px; margin: 0 auto; } /* Tăng chiều rộng để hiển thị đủ cột */
-
-        /* Header & Tabs */
-        .header-section { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px; }
-        h2 { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 2px; overflow-x: auto; }
-        .tab-btn { 
-            padding: 10px 20px; border: none; background: none; cursor: pointer; 
-            font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent;
-            margin-bottom: -4px; transition: 0.2s; white-space: nowrap;
-        }
-        .tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
-
-        .controls-card {
-            background: var(--white);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .input-group { display: flex; flex-direction: column; gap: 5px; }
-        label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-
-        select, input {
-            padding: 10px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            padding-bottom: 60px; 
             font-size: 14px;
-            outline: none;
-            transition: border 0.2s;
-            background: white;
+            line-height: 1.5;
         }
-        select:focus, input:focus { border-color: var(--primary-color); }
 
-        .stats-group { display: flex; gap: 10px; flex-grow: 1; align-items: center; flex-wrap: wrap; }
-        .stat-item {
-            background: #f1f5f9;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
+        /* --- SCROLLBAR CUSTOMIZATION --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* --- HEADER --- */
+        .top-bar {
+            background: var(--surface);
+            padding: 16px 0;
+            position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        
+        .brand { 
+            font-size: 20px; font-weight: 700; color: var(--primary-dark); 
+            display: flex; align-items: center; gap: 12px; 
+        }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--primary-light);
+            color: var(--primary); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+
+        .update-info { 
+            font-size: 12px; font-weight: 500; color: var(--text-secondary);
+            background: var(--bg-body); padding: 6px 12px; border-radius: 20px;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        /* --- DASHBOARD STATS --- */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0;
+        }
+        .stat-card {
+            background: var(--surface); padding: 20px; border-radius: var(--radius);
+            box-shadow: var(--shadow); border: 1px solid var(--border);
+            position: relative; overflow: hidden; transition: var(--transition);
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+        
+        .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .stat-icon { 
+            width: 36px; height: 36px; border-radius: 8px; display: flex; 
+            align-items: center; justify-content: center; font-size: 16px; 
+        }
+        .stat-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 28px; font-weight: 800; color: var(--text-main); line-height: 1; }
+        
+        /* Color variants for Stats */
+        .sc-blue .stat-icon { background: var(--primary-light); color: var(--primary); }
+        .sc-red .stat-icon { background: var(--danger-bg); color: var(--danger); }
+        .sc-yellow .stat-icon { background: var(--warning-bg); color: var(--warning); }
+        .sc-green .stat-icon { background: var(--success-bg); color: var(--success); }
+
+        /* --- NAVIGATION TABS --- */
+        .nav-wrapper {
+            background: var(--surface); border-radius: var(--radius); padding: 6px;
+            box-shadow: var(--shadow); margin-bottom: 24px; border: 1px solid var(--border);
+            display: flex; overflow-x: auto; scrollbar-width: none;
+        }
+        .nav-item {
+            flex: 1; text-align: center; padding: 10px 16px; cursor: pointer;
+            font-weight: 500; color: var(--text-secondary); border-radius: 10px;
+            transition: var(--transition); white-space: nowrap; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .nav-item:hover { background: var(--bg-body); color: var(--text-main); }
+        .nav-item.active { background: var(--primary); color: white; font-weight: 600; box-shadow: 0 4px 6px -2px rgba(37, 99, 235, 0.4); }
+        
+        /* Specific Styles for Tab Colors when Active */
+        .nav-item.danger-tab.active { background: var(--danger); box-shadow: 0 4px 6px -2px rgba(239, 68, 68, 0.4); }
+
+        /* --- FILTERS SECTION --- */
+        .filter-section {
+            background: var(--surface); padding: 20px; border-radius: var(--radius);
+            box-shadow: var(--shadow); margin-bottom: 24px; border: 1px solid var(--border);
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 16px; align-items: end;
+        }
+        
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+        
+        .form-control {
+            width: 100%; height: 42px; padding: 0 14px; 
+            border: 1px solid var(--border); border-radius: 10px;
+            font-size: 14px; color: var(--text-main); background: #fff;
+            transition: var(--transition); outline: none; appearance: none;
+        }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px; padding-right: 40px; }
+
+        .search-group { grid-column: span 2; }
+        @media (max-width: 900px) { .search-group { grid-column: span 1; } }
+
+        .action-group { display: flex; gap: 10px; align-items: flex-end; }
+        
+        .count-badge {
+            height: 42px; padding: 0 16px; border-radius: 10px;
+            background: var(--bg-body); color: var(--text-main); font-weight: 600;
+            display: flex; align-items: center; border: 1px solid var(--border);
             white-space: nowrap;
         }
 
-        .btn-action {
-            color: white; border: none; padding: 10px 20px;
-            border-radius: 8px; font-weight: 600; cursor: pointer;
-            transition: 0.2s; display: flex; align-items: center; gap: 8px;
-            text-decoration: none; font-size: 14px;
+        .btn {
+            height: 42px; padding: 0 20px; border: none; border-radius: 10px;
+            font-weight: 600; font-size: 14px; cursor: pointer; color: white;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            transition: var(--transition); box-shadow: 0 2px 4px rgba(0,0,0,0.1); white-space: nowrap;
         }
-        .btn-success { background: var(--success); }
-        .btn-warning { background: var(--warning); }
-        .btn-danger { background: var(--danger); }
+        .btn:active { transform: scale(0.97); }
+        .btn-green { background: var(--success); } .btn-green:hover { background: #059669; }
+        .btn-red { background: var(--danger); } .btn-red:hover { background: #dc2626; }
+        .btn-blue { background: var(--primary); } .btn-blue:hover { background: #1d4ed8; }
 
-        /* Table Style */
-        .content-view { display: none; }
-        .content-view.active { display: block; }
-
-        .table-container {
-            background: var(--white);
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            overflow: hidden;
-            overflow-x: auto;
+        /* --- TABLE STYLE --- */
+        .table-wrapper {
+            background: var(--surface); border-radius: var(--radius);
+            box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border);
+            position: relative;
         }
-        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1000px; }
-        th {
-            background: #f8fafc;
-            padding: 14px 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
+        .table-scroll { overflow-x: auto; max-height: 70vh; }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 800px; }
+        
+        thead th {
+            background: #f8fafc; color: var(--text-secondary); font-size: 12px; 
+            font-weight: 600; text-transform: uppercase; padding: 16px; text-align: left;
+            position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border);
         }
-        td { padding: 14px 20px; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; }
-        tr:hover { background-color: #f8fafc; }
-
-        .tag { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
-        .tag-nam { background: #e0f2fe; color: #0369a1; }
-        .tag-nu { background: #fdf2f8; color: #be185d; }
-        .tag-hard { background: #fef3c7; color: #92400e; }
-
-        /* MÀU SẮC TRẠNG THÁI SỔ ĐOÀN */
-        .status-ok { background: #dcfce7; color: #166534; } /* Có ngày */
-        .status-warn { background: #fef9c3; color: #854d0e; } /* Có sổ nhưng "x" */
-        .status-missing { background: #fee2e2; color: #991b1b; } /* Chưa nộp */
-
-        .mssv-link { color: var(--primary-color); font-weight: 600; cursor: pointer; text-decoration: underline; }
-
-        .summary-text { font-size: 13px; color: #475569; line-height: 1.5; max-width: 500px; }
-        .note-text { font-style: italic; color: #64748b; font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        /* Modal */
-        .modal {
-            display: none; position: fixed; inset: 0;
-            background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px);
-            z-index: 1000;
+        
+        tbody td {
+            padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px;
+            vertical-align: middle; color: var(--text-main); white-space: nowrap;
+            transition: background 0.1s;
         }
-        .modal-content {
-            background: var(--white); width: 550px; max-width: 90%;
-            margin: 80px auto; border-radius: 16px; overflow: hidden;
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background-color: var(--primary-light); }
+        
+        .wrap-text { white-space: normal; line-height: 1.4; min-width: 250px; }
+        .mono-font { font-family: 'SF Mono', 'Roboto Mono', monospace; font-weight: 500; color: var(--text-secondary); letter-spacing: -0.5px; }
+
+        /* Status Tags */
+        .tag { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .tag-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+        .st-ok { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; } 
+        .st-ok .tag-dot { background: var(--success); }
+        
+        .st-warn { background: var(--warning-bg); color: #d97706; border: 1px solid #fde68a; } 
+        .st-warn .tag-dot { background: #d97706; }
+        
+        .st-missing { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; } 
+        .st-missing .tag-dot { background: var(--danger); }
+
+        .gender-tag { padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+        .g-male { background: #dbeafe; color: #1e40af; }
+        .g-female { background: #fce7f3; color: #be185d; }
+
+        .vio-badge {
+            width: 24px; height: 24px; border-radius: 50%; display: flex; 
+            align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+            margin: 0 auto;
         }
-        .modal-header { padding: 20px; background: #f8fafc; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
-        .modal-body { padding: 20px; max-height: 400px; overflow-y: auto; }
+        .vio-yes { background: var(--danger); color: white; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4); }
+        .vio-no { color: #d1d5db; background: #f3f4f6; }
 
-        #status { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+        /* --- LOADING SCREEN --- */
+        #loading-screen {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px);
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .spinner {
+            width: 48px; height: 48px; border: 4px solid var(--border);
+            border-top: 4px solid var(--primary); border-radius: 50%;
+            animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* --- SUB VIEWS --- */
+        .view-section { display: none; animation: fadeIn 0.4s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .view-header {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+            font-size: 18px; font-weight: 700; color: var(--text-main);
+        }
+
+        /* --- RESPONSIVE ADJUSTMENTS --- */
         @media (max-width: 768px) {
-            .controls-card { flex-direction: column; align-items: stretch; }
+            .container { padding: 0 12px; }
+            .header-content { flex-direction: row; gap: 10px; }
+            .brand span { display: none; } /* Hide text logo on small mobile */
+            .brand-icon { width: 32px; height: 32px; font-size: 16px; }
+            
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .stat-card { padding: 16px; }
+            .stat-value { font-size: 22px; }
+            
+            .filter-section { display: flex; flex-direction: column; gap: 12px; align-items: stretch; padding: 16px; }
+            .search-group { width: 100%; }
+            .action-group { flex-direction: column; }
+            .btn, .count-badge { width: 100%; }
+
+            /* Fix input zoom on iOS */
+            input, select, textarea { font-size: 16px !important; }
+            
+            .nav-item { padding: 10px; font-size: 13px; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-section">
-        <div>
-            <h2>Hệ thống Quản lý Sinh viên & Sổ Đoàn</h2>
-            <div id="status">⏳ Đang tải dữ liệu...</div>
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <div style="font-weight: 600; color: var(--text-main); font-size: 15px;">Đang đồng bộ dữ liệu...</div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="top-bar">
+        <div class="container header-content">
+            <div class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <span>QUẢN LÝ ĐOÀN VIÊN</span>
+            </div>
+            <div class="update-info" id="lastUpdate">
+                <i class="fa-regular fa-clock"></i> Đang tải...
+            </div>
         </div>
     </div>
 
-    <div class="tab-container">
-        <button class="tab-btn active" onclick="switchTab('list', this)">📋 Danh sách sinh viên</button>
-        <button class="tab-btn" onclick="switchTab('difficulty', this)">🏠 Diện khó khăn</button>
-        <button class="tab-btn" onclick="switchTab('stats', this)">📊 Thống kê báo cáo</button>
-    </div>
-
-    <!-- TAB 1: DANH SÁCH CHÍNH -->
-    <div id="listView" class="content-view active">
-        <div class="controls-card">
-            <div class="input-group">
-                <label>Chi đoàn</label>
-                <select id="lopSelect" disabled onchange="applyFilters()"><option value="ALL">Tất cả lớp</option></select>
+    <div class="container">
+        
+        <!-- DASHBOARD STATS -->
+        <div class="stats-grid">
+            <div class="stat-card sc-blue">
+                <div class="stat-header">
+                    <span class="stat-title">Tổng SV</span>
+                    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                </div>
+                <div class="stat-value" id="totalSV">0</div>
             </div>
+            <div class="stat-card sc-red">
+                <div class="stat-header">
+                    <span class="stat-title">Vi Phạm</span>
+                    <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                </div>
+                <div class="stat-value" id="totalVio">0</div>
+            </div>
+            <div class="stat-card sc-yellow">
+                <div class="stat-header">
+                    <span class="stat-title">Khó Khăn</span>
+                    <div class="stat-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                </div>
+                <div class="stat-value" id="totalDiff">0</div>
+            </div>
+            <div class="stat-card sc-green">
+                <div class="stat-header">
+                    <span class="stat-title">Đã Nộp Sổ</span>
+                    <div class="stat-icon"><i class="fa-solid fa-book-bookmark"></i></div>
+                </div>
+                <div class="stat-value" id="totalBook">0</div>
+            </div>
+        </div>
+
+        <!-- NAVIGATION -->
+        <div class="nav-wrapper">
+            <div class="nav-item active" onclick="switchTab('list', this)">
+                <i class="fa-solid fa-list-ul"></i> Tổng hợp
+            </div>
+            <div class="nav-item danger-tab" onclick="switchTab('violation', this)">
+                <i class="fa-solid fa-circle-exclamation"></i> Vi phạm
+            </div>
+            <div class="nav-item" onclick="switchTab('difficulty', this)">
+                <i class="fa-solid fa-heart"></i> Khó khăn
+            </div>
+            <div class="nav-item" onclick="switchTab('stats', this)">
+                <i class="fa-solid fa-chart-pie"></i> Báo cáo
+            </div>
+        </div>
+
+        <!-- VIEW 1: DANH SÁCH TỔNG HỢP -->
+        <div id="listView" class="view-section active">
             
-            <!-- Thêm bộ lọc Trạng thái Sổ -->
-            <div class="input-group">
-                <label>Trạng thái Sổ</label>
-                <select id="bookSelect" onchange="applyFilters()">
-                    <option value="ALL">Tất cả</option>
-                    <option value="OK">✅ Đã nộp (Có ngày)</option>
-                    <option value="X">⚠️ Thiếu thông tin (x)</option>
-                    <option value="MISSING">❌ Chưa nộp</option>
-                </select>
+            <div class="filter-section">
+                <div class="filter-group search-group">
+                    <label>Tìm kiếm</label>
+                    <input type="text" id="f_search" class="form-control" placeholder="Nhập tên hoặc MSSV..." oninput="applyFilters()">
+                </div>
+
+                <div class="filter-group">
+                    <label>Chi đoàn</label>
+                    <select id="f_class" class="form-control" onchange="applyFilters()">
+                        <option value="ALL">Tất cả lớp</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Sổ Đoàn</label>
+                    <select id="f_status" class="form-control" onchange="applyFilters()">
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="OK">Đã nộp đầy đủ</option>
+                        <option value="X">Thiếu thông tin</option>
+                        <option value="MISSING">Chưa nộp</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Giới tính</label>
+                    <select id="f_gender" class="form-control" onchange="applyFilters()">
+                        <option value="ALL">Tất cả</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                    </select>
+                </div>
+
+                <div class="filter-group action-group">
+                    <div class="count-badge">
+                        <span id="countDisplay">SL: 0</span>
+                    </div>
+                    <button class="btn btn-green" onclick="exportExcel('list')">
+                        <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                    </button>
+                </div>
             </div>
 
-            <div class="input-group">
-                <label>Giới tính</label>
-                <select id="genderSelect" onchange="applyFilters()">
-                    <option value="ALL">Tất cả</option>
-                    <option value="Nam">Nam</option>
-                    <option value="Nữ">Nữ</option>
-                </select>
+            <!-- TABLE -->
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th width="120">MSSV</th>
+                                <th width="200">Họ và Tên</th>
+                                <th width="100">Lớp</th>
+                                <th width="90">Giới tính</th>
+                                <th width="160">Trạng thái Sổ</th>
+                                <th width="80" style="text-align: center;">Lỗi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyList"></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="input-group" style="flex-grow: 1;">
-                <label>Tìm kiếm</label>
-                <input type="text" id="searchInput" placeholder="Tìm tên hoặc MSSV..." oninput="applyFilters()">
-            </div>
-            
-            <div class="stats-group">
-                <div class="stat-item" id="count">👥 Tổng: 0</div>
-            </div>
+        </div>
 
-            <button class="btn-action btn-success" onclick="exportToExcel()">📥 Xuất Excel (.xlsx)</button>
+        <!-- VIEW 2: VI PHẠM -->
+        <div id="violationView" class="view-section">
+            <div class="view-header" style="color: var(--danger);">
+                <i class="fa-solid fa-triangle-exclamation"></i> Danh sách Vi Phạm (HK2_2025_2026)
+            </div>
+            <div class="filter-section" style="display: flex; justify-content: flex-end; padding: 12px;">
+                <button class="btn btn-red" onclick="exportExcel('violation')"><i class="fa-solid fa-file-export"></i> Tải danh sách vi phạm</button>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th width="50">STT</th><th width="120">MSSV</th><th width="200">Họ và Tên</th><th width="100">Lớp</th><th>Nội dung vi phạm</th></tr></thead>
+                        <tbody id="tbodyViolation"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>MSSV</th>
-                        <th>Họ và tên</th>
-                        <th>Lớp</th>
-                        <th>SĐT</th>
-                        <th>Giới tính</th>
-                        <!-- Cột mới -->
-                        <th>Sổ Đoàn</th>
-                        <th>Ghi chú</th>
-                    </tr>
-                </thead>
-                <tbody id="dataBody"></tbody>
-            </table>
+
+        <!-- VIEW 3: KHÓ KHĂN -->
+        <div id="difficultyView" class="view-section">
+            <div class="view-header" style="color: var(--warning);">
+                <i class="fa-solid fa-hand-holding-heart"></i> Hoàn cảnh Khó khăn
+            </div>
+            <div class="filter-section" style="display: flex; justify-content: flex-end; padding: 12px;">
+                <button class="btn btn-blue" style="background: var(--warning);" onclick="exportExcel('difficulty')"><i class="fa-solid fa-file-csv"></i> Tải danh sách khó khăn</button>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th width="120">MSSV</th><th width="200">Họ và Tên</th><th width="100">Lớp</th><th>Mô tả hoàn cảnh</th></tr></thead>
+                        <tbody id="tbodyDifficulty"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+
+        <!-- VIEW 4: THỐNG KÊ -->
+        <div id="statsView" class="view-section">
+            <div class="view-header" style="color: var(--primary);">
+                <i class="fa-solid fa-chart-pie"></i> Báo cáo tổng hợp
+            </div>
+            <div class="filter-section" style="display: flex; justify-content: flex-end; padding: 12px;">
+                <button class="btn btn-blue" onclick="exportExcel('stats')"><i class="fa-solid fa-download"></i> Tải Báo Cáo</button>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table id="statsTable">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center;" width="60">STT</th>
+                                <th>Chi đoàn</th>
+                                <th style="text-align: center;">Tổng SV</th>
+                                <th style="text-align: center;">Nam</th>
+                                <th style="text-align: center;">Nữ</th>
+                                <th style="text-align: center;">Có Lỗi</th>
+                                <th style="text-align: center;">Đã nộp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyStats"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
-
-    <!-- TAB 2: DIỆN KHÓ KHĂN -->
-    <div id="difficultyView" class="content-view">
-        <div class="controls-card" style="justify-content: space-between;">
-            <div class="stats-group">
-                <div class="stat-item" id="diffCount">🏠 Số lượng khó khăn: 0 sinh viên</div>
-            </div>
-            <button class="btn-action btn-danger" onclick="exportDifficultyExcel()">📥 Xuất DS Khó khăn (.xlsx)</button>
-        </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>MSSV</th>
-                        <th>Họ và tên</th>
-                        <th>Lớp</th>
-                        <th>Tóm tắt hoàn cảnh gia đình</th>
-                    </tr>
-                </thead>
-                <tbody id="difficultyBody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- TAB 3: THỐNG KÊ -->
-    <div id="statsView" class="content-view">
-        <div class="controls-card" style="justify-content: space-between;">
-            <div style="font-weight: 700;">BÁO CÁO TỔNG HỢP CHI ĐOÀN</div>
-            <button class="btn-action btn-warning" onclick="exportStatsToExcel()">📥 Xuất Báo cáo (.xlsx)</button>
-        </div>
-        <div class="table-container">
-            <table id="statsTable">
-                <thead>
-                    <tr>
-                        <th>STT</th>
-                        <th>Tên Chi đoàn</th>
-                        <th style="text-align: center;">Tổng SV</th>
-                        <th style="text-align: center;">Nam</th>
-                        <th style="text-align: center;">Nữ</th>
-                        <th style="text-align: center;">Khó Khăn</th>
-                        <!-- Thêm cột thống kê Sổ Đoàn -->
-                        <th style="text-align: center;">Đã nộp Sổ</th>
-                    </tr>
-                </thead>
-                <tbody id="statsBody"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Modal -->
-<div id="activityModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="modalTitle">📌 Hoạt động</h3>
-            <span style="cursor:pointer; font-size:24px" onclick="closeModal()">&times;</span>
-        </div>
-        <div class="modal-body" id="activityContent"></div>
-    </div>
-</div>
 
 <script>
-    // --- LINK DỮ LIỆU ---
-    const studentUrl = "https://opensheet.elk.sh/1hd1-8lo1DxPOGrPwizlvcF7xPdyu9_dzvzwyziGjmfE/Câu trả lời biểu mẫu 1";
-    const activityUrl = "https://opensheet.elk.sh/1iJpJzdYeOEsswIRjBsb_5msc4RRkgyHCMUIYq1KUTN8/Sheet1";
-    // Link Sheet TONG HOP (Sổ Đoàn)
-    const bookUrl = "https://opensheet.elk.sh/1NGAXTWIXTLYRIx9isPSpdqviLBQolSaO9F4_BDkAETA/TONG HOP";
-
-    const COL = {
-        MSSV: "Mã số sinh viên:",
-        NAME: "Họ Tên:",
-        CLASS: "Chi đoàn trực thuộc:",
-        PHONE: "Số điện thoại:",
-        GENDER: "Giới tính:",
-        HARD: "Bạn có thuộc diện hoàn cảnh khó khăn không?",
-        FAMILY: "Tóm tắt hoàn cảnh gia đình:",
-        
-        // Cột bên Sheet TONG HOP
-        BOOK_MSSV: "MSSV",
-        BOOK_STATUS: "Đã nộp sổ Đoàn",
-        BOOK_NOTE: "Ghi chú"
+    // --- CONFIGURATION ---
+    const URLS = {
+        STUDENTS: "https://opensheet.elk.sh/1hd1-8lo1DxPOGrPwizlvcF7xPdyu9_dzvzwyziGjmfE/Câu trả lời biểu mẫu 1",
+        BOOKS: "https://opensheet.elk.sh/12BNuvpjajh81Dsuuo_6NdROegNgu6reCp8KYttTnprc/TONG HOP",
+        VIOLATIONS: "https://opensheet.elk.sh/110EmYT7ecjpCMw-LcLtTDx0iYpWraR8jwbAIK_9Jyew/VIPHAM"
     };
 
-    let allData = [];
-    let filteredData = [];
-    let activityData = [];
+    const COLS = {
+        MSSV: "Mã số sinh viên:", NAME: "Họ Tên:", CLASS: "Chi đoàn trực thuộc:", GENDER: "Giới tính:",
+        HARD: "Bạn có thuộc diện hoàn cảnh khó khăn không?", FAMILY: "Tóm tắt hoàn cảnh gia đình:",
+        BOOK_MSSV: "MSSV", BOOK_STATUS: "Đã nộp sổ Đoàn",
+        VIO_MSSV: "MSSV", VIO_CONTENT: "Ghi chú"
+    };
 
-    // Tải dữ liệu từ 3 nguồn
-    Promise.all([
-        fetch(studentUrl).then(r => r.json()),
-        fetch(activityUrl).then(r => r.json()),
-        fetch(bookUrl).then(r => r.json())
-    ])
-    .then(([students, activities, books]) => {
-        
-        // 1. Tạo Map để tra cứu Sổ Đoàn nhanh
-        const bookMap = {};
-        books.forEach(b => {
-            const mssv = b[COL.BOOK_MSSV]?.toString().trim();
-            if(mssv) bookMap[mssv] = b;
-        });
+    let globalData = [];
 
-        const seenMssv = new Set();
-        const seenPhone = new Set();
-        allData = [];
+    // --- UTILITIES ---
+    const formatName = (str) => str ? str.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase()) : "";
+    
+    // --- MAIN FUNCTION ---
+    async function loadData() {
+        try {
+            const [students, books, violations] = await Promise.all([
+                fetch(URLS.STUDENTS).then(r => r.json()),
+                fetch(URLS.BOOKS).then(r => r.json()),
+                fetch(URLS.VIOLATIONS).then(r => r.json().catch(() => []))
+            ]);
 
-        // 2. Duyệt qua sinh viên và ghép thông tin
-        students.forEach(s => {
-            const mssv = s[COL.MSSV]?.toString().trim();
-            const phone = s[COL.PHONE]?.toString().trim();
-            if (!mssv) return;
-            if (seenMssv.has(mssv) || (phone && seenPhone.has(phone))) return;
-            seenMssv.add(mssv);
-            if (phone) seenPhone.add(phone);
-
-            // Logic xử lý Sổ Đoàn
-            const bookInfo = bookMap[mssv] || {};
-            const rawStatus = bookInfo[COL.BOOK_STATUS] || "";
-            const bookNote = bookInfo[COL.BOOK_NOTE] || "";
-
-            let displayStatus = "Chưa nộp";
-            let typeStatus = "MISSING";
-            
-            const check = rawStatus.toString().trim().toLowerCase();
-
-            if (check === "x") {
-                displayStatus = "Có sổ (Thiếu ngày)";
-                typeStatus = "X";
-            } else if (check.length > 0) {
-                displayStatus = rawStatus; // Hiển thị ngày
-                typeStatus = "OK";
-            }
-
-            // Tạo object dữ liệu hợp nhất
-            allData.push({
-                ...s,
-                bookDisplay: displayStatus,
-                bookType: typeStatus,
-                bookNote: bookNote
+            // Process Data
+            const vioMap = {};
+            violations.forEach(v => {
+                const mssv = v[COLS.VIO_MSSV]?.toString().trim();
+                const content = v[COLS.VIO_CONTENT];
+                if(mssv && content) {
+                    if(!vioMap[mssv]) vioMap[mssv] = [];
+                    if(!vioMap[mssv].includes(content)) vioMap[mssv].push(content);
+                }
             });
-        });
 
-        activityData = activities;
-        populateClassDropdown();
-        applyFilters();
-        
-        document.getElementById("status").innerHTML = "✅ Dữ liệu đã cập nhật";
-        document.getElementById("lopSelect").disabled = false;
-    })
-    .catch(err => {
-        console.error(err);
-        document.getElementById("status").innerHTML = "❌ Lỗi kết nối dữ liệu";
-    });
+            const bookMap = {};
+            books.forEach(b => {
+                const mssv = b[COLS.BOOK_MSSV]?.toString().trim();
+                if(mssv) bookMap[mssv] = b[COLS.BOOK_STATUS];
+            });
+
+            const seen = new Set();
+            globalData = [];
+
+            students.forEach(s => {
+                const mssv = s[COLS.MSSV]?.toString().trim();
+                if (!mssv || seen.has(mssv)) return;
+                seen.add(mssv);
+
+                let rawBook = bookMap[mssv] || "";
+                let check = rawBook.toString().trim().toLowerCase();
+                let bCode = "MISSING", bLabel = "Chưa nộp";
+
+                if (check === "x") { bCode = "X"; bLabel = "Thiếu tin"; }
+                else if (check.length > 0) { bCode = "OK"; bLabel = rawBook; }
+
+                globalData.push({
+                    mssv: mssv,
+                    name: formatName(s[COLS.NAME]),
+                    class: s[COLS.CLASS],
+                    gender: s[COLS.GENDER],
+                    isHard: s[COLS.HARD] === "Có",
+                    family: s[COLS.FAMILY],
+                    bookCode: bCode,
+                    bookLabel: bLabel,
+                    violations: vioMap[mssv] || [],
+                });
+            });
+
+            updateDashboard();
+            populateClassDropdown();
+            applyFilters();
+            renderSubViews();
+            
+            document.getElementById("loading-screen").style.opacity = "0";
+            setTimeout(() => { document.getElementById("loading-screen").style.display = "none"; }, 500);
+            
+            document.getElementById("lastUpdate").innerHTML = `<i class="fa-regular fa-clock"></i> Cập nhật: ${new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}`;
+
+        } catch (e) {
+            console.error(e);
+            alert("Lỗi kết nối! Vui lòng tải lại trang.");
+            document.getElementById("loading-screen").style.display = "none";
+        }
+    }
+
+    // --- LOGIC FUNCTIONS ---
+    function updateDashboard() {
+        // Animation numbers
+        const animateValue = (id, end) => {
+            const obj = document.getElementById(id);
+            let start = 0;
+            if(end === 0) { obj.innerText = 0; return; }
+            let duration = 1000;
+            let range = end - start;
+            let current = start;
+            let increment = end > start ? 1 : -1;
+            let stepTime = Math.abs(Math.floor(duration / range));
+            let timer = setInterval(function() {
+                current += increment;
+                obj.innerHTML = current;
+                if (current == end) clearInterval(timer);
+            }, Math.max(stepTime, 10));
+        };
+
+        animateValue("totalSV", globalData.length);
+        animateValue("totalVio", globalData.filter(d => d.violations.length > 0).length);
+        animateValue("totalDiff", globalData.filter(d => d.isHard).length);
+        animateValue("totalBook", globalData.filter(d => d.bookCode === "OK").length);
+    }
 
     function populateClassDropdown() {
-        const classes = [...new Set(allData.map(item => item[COL.CLASS]).filter(Boolean))].sort();
-        const select = document.getElementById("lopSelect");
-        classes.forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = c; opt.textContent = c;
-            select.appendChild(opt);
+        const classes = [...new Set(globalData.map(d => d.class).filter(Boolean))].sort();
+        const sel = document.getElementById("f_class");
+        classes.forEach(c => sel.add(new Option(c, c)));
+    }
+
+    function applyFilters() {
+        const fClass = document.getElementById("f_class").value;
+        const fStatus = document.getElementById("f_status").value;
+        const fGender = document.getElementById("f_gender").value;
+        const fSearch = document.getElementById("f_search").value.toLowerCase().trim();
+
+        const filtered = globalData.filter(item => {
+            return (fClass === "ALL" || item.class === fClass) &&
+                   (fStatus === "ALL" || item.bookCode === fStatus) &&
+                   (fGender === "ALL" || item.gender === fGender) &&
+                   (item.name.toLowerCase().includes(fSearch) || item.mssv.includes(fSearch));
+        });
+
+        document.getElementById("countDisplay").innerHTML = `Hiển thị: <b>${filtered.length}</b>`;
+        const tbody = document.getElementById("tbodyList");
+        tbody.innerHTML = "";
+
+        if(filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-secondary)"><i class="fa-solid fa-inbox" style="font-size:30px; margin-bottom:10px; display:block"></i>Không tìm thấy dữ liệu phù hợp</td></tr>`;
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        filtered.forEach(item => {
+            let statusClass = item.bookCode === 'OK' ? 'st-ok' : (item.bookCode === 'X' ? 'st-warn' : 'st-missing');
+            let genderClass = item.gender === 'Nam' ? 'g-male' : 'g-female';
+            let vioCount = item.violations.length;
+            let vioContent = vioCount > 0 
+                ? `<div class="vio-badge vio-yes">${vioCount}</div>` 
+                : `<div class="vio-badge vio-no"><i class="fa-solid fa-check"></i></div>`;
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td class="mono-font" style="color:var(--primary-dark)">${item.mssv}</td>
+                <td style="font-weight:600">${item.name}</td>
+                <td>${item.class}</td>
+                <td><span class="gender-tag ${genderClass}">${item.gender}</span></td>
+                <td><span class="tag ${statusClass}"><span class="tag-dot"></span>${item.bookLabel}</span></td>
+                <td style="text-align:center">${vioContent}</td>
+            `;
+            frag.appendChild(tr);
+        });
+        tbody.appendChild(frag);
+    }
+
+    function renderSubViews() {
+        // Vi Phạm
+        const vList = globalData.filter(d => d.violations.length > 0);
+        const tbV = document.getElementById("tbodyViolation");
+        tbV.innerHTML = "";
+        vList.forEach((d, i) => {
+            tbV.innerHTML += `<tr><td style="text-align:center; color:var(--text-secondary)">${i+1}</td><td class="mono-font">${d.mssv}</td><td style="font-weight:600">${d.name}</td><td>${d.class}</td><td class="wrap-text" style="color:var(--danger)">${d.violations.join(", ")}</td></tr>`;
+        });
+
+        // Khó khăn
+        const dList = globalData.filter(d => d.isHard);
+        const tbD = document.getElementById("tbodyDifficulty");
+        tbD.innerHTML = "";
+        dList.forEach(d => {
+            tbD.innerHTML += `<tr><td class="mono-font">${d.mssv}</td><td style="font-weight:600">${d.name}</td><td>${d.class}</td><td class="wrap-text">${d.family}</td></tr>`;
+        });
+
+        // Thống kê
+        const map = {};
+        globalData.forEach(s => {
+            const c = s.class || "Khác";
+            if(!map[c]) map[c] = { total:0, nam:0, nu:0, vio:0, book:0 };
+            map[c].total++;
+            if(s.gender === "Nam") map[c].nam++; else map[c].nu++;
+            if(s.violations.length > 0) map[c].vio++;
+            if(s.bookCode === "OK") map[c].book++;
+        });
+
+        const tbS = document.getElementById("tbodyStats");
+        tbS.innerHTML = "";
+        Object.keys(map).sort().forEach((c, i) => {
+            const d = map[c];
+            tbS.innerHTML += `
+                <tr>
+                    <td style="text-align:center">${i+1}</td>
+                    <td style="font-weight:700">${c}</td>
+                    <td style="text-align:center; font-weight:600">${d.total}</td>
+                    <td style="text-align:center; color:#1e40af">${d.nam}</td>
+                    <td style="text-align:center; color:#be185d">${d.nu}</td>
+                    <td style="text-align:center; font-weight:700; color:${d.vio>0 ? 'var(--danger)' : '#e5e7eb'}">${d.vio}</td>
+                    <td style="text-align:center; font-weight:700; color:var(--success)">${d.book}</td>
+                </tr>`;
         });
     }
 
     function switchTab(tab, btn) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.content-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(tab + 'View').classList.add('active');
         
-        if(tab === 'stats') renderStats();
-        if(tab === 'difficulty') renderDifficultyList();
+        if(window.innerWidth < 768) {
+             // Smooth scroll adjust for mobile
+        }
     }
 
-    function applyFilters() {
-        const classVal = document.getElementById("lopSelect").value;
-        const genderVal = document.getElementById("genderSelect").value;
-        const bookVal = document.getElementById("bookSelect").value;
-        const searchVal = document.getElementById("searchInput").value.toLowerCase().trim();
+    function exportExcel(type) {
+        const wb = XLSX.utils.book_new();
+        let ws, name;
 
-        filteredData = allData.filter(item => {
-            const matchClass = (classVal === "ALL" || item[COL.CLASS] === classVal);
-            const matchGender = (genderVal === "ALL" || item[COL.GENDER] === genderVal);
-            
-            // Filter Sổ Đoàn
-            let matchBook = true;
-            if (bookVal !== "ALL") matchBook = item.bookType === bookVal;
+        const fClass = document.getElementById("f_class").value;
+        const fStatus = document.getElementById("f_status").value;
+        const fGender = document.getElementById("f_gender").value;
+        const fSearch = document.getElementById("f_search").value.toLowerCase().trim();
 
-            const matchSearch = (
-                item[COL.NAME]?.toLowerCase().includes(searchVal) || 
-                item[COL.MSSV]?.toString().includes(searchVal)
-            );
-            return matchClass && matchGender && matchSearch && matchBook;
-        });
-        renderTable();
-    }
+        const getFilteredData = (sourceData) => {
+            return sourceData.filter(item => {
+                const matchClass = (fClass === "ALL" || item.class === fClass);
+                if (type === 'list') {
+                    const matchStatus = (fStatus === "ALL" || item.bookCode === fStatus);
+                    const matchGender = (fGender === "ALL" || item.gender === fGender);
+                    const matchSearch = (item.name.toLowerCase().includes(fSearch) || item.mssv.includes(fSearch));
+                    return matchClass && matchStatus && matchGender && matchSearch;
+                }
+                return matchClass; 
+            });
+        };
 
-    function renderTable() {
-        const tbody = document.getElementById("dataBody");
-        tbody.innerHTML = "";
-        document.getElementById("count").textContent = `👥 Tổng: ${filteredData.length}`;
+        const dataToExport = getFilteredData(globalData);
 
-        filteredData.forEach(r => {
-            // Logic màu sắc Sổ
-            let badgeClass = "status-missing";
-            if (r.bookType === "OK") badgeClass = "status-ok";
-            if (r.bookType === "X") badgeClass = "status-warn";
-
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td><span class="mssv-link" onclick="showActivity('${r[COL.MSSV]}', '${r[COL.NAME]}')">${r[COL.MSSV]}</span></td>
-                <td style="font-weight:600">${r[COL.NAME] || ""}</td>
-                <td>${r[COL.CLASS] || ""}</td>
-                <td>${r[COL.PHONE] || ""}</td>
-                <td><span class="tag ${r[COL.GENDER] === 'Nam' ? 'tag-nam' : 'tag-nu'}">${r[COL.GENDER] || ""}</span></td>
-                <!-- Cột Sổ Đoàn Mới -->
-                <td><span class="tag ${badgeClass}">${r.bookDisplay}</span></td>
-                <td><div class="note-text" title="${r.bookNote}">${r.bookNote}</div></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function renderDifficultyList() {
-        const tbody = document.getElementById("difficultyBody");
-        tbody.innerHTML = "";
-        const diffList = allData.filter(item => item[COL.HARD] === "Có");
-        document.getElementById("diffCount").textContent = `🏠 Số lượng khó khăn: ${diffList.length} sinh viên`;
-
-        diffList.forEach(r => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${r[COL.MSSV]}</td>
-                <td style="font-weight:600">${r[COL.NAME]}</td>
-                <td>${r[COL.CLASS]}</td>
-                <td class="summary-text">${r[COL.FAMILY] || '<i style="color:#ccc">Không có tóm tắt</i>'}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function renderStats() {
-        const statsBody = document.getElementById("statsBody");
-        statsBody.innerHTML = "";
-        const statsMap = {};
+        if(type === 'list') {
+            const data = dataToExport.map(s => ({ MSSV: s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Giới tính": s.gender, "Sổ Đoàn": s.bookLabel, "SL Vi phạm": s.violations.length }));
+            ws = XLSX.utils.json_to_sheet(data); name = "DS_TongHop";
+        } else if(type === 'violation') {
+            const vioList = dataToExport.filter(d => d.violations.length > 0);
+            const data = vioList.map((s,i) => ({ STT: i+1, MSSV: s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Nội dung": s.violations.join(", ") }));
+            ws = XLSX.utils.json_to_sheet(data); name = "DS_ViPham";
+        } else if(type === 'difficulty') {
+            const diffList = dataToExport.filter(d => d.isHard);
+            const data = diffList.map(s => ({ MSSV: s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Hoàn cảnh": s.family }));
+            ws = XLSX.utils.json_to_sheet(data); name = "DS_KhoKhan";
+        } else {
+            ws = XLSX.utils.table_to_sheet(document.getElementById("statsTable")); name = "BaoCao_SoLieu";
+        }
         
-        allData.forEach(s => {
-            const lop = s[COL.CLASS] || "Chưa xác định";
-            if (!statsMap[lop]) statsMap[lop] = { total: 0, nam: 0, nu: 0, hard: 0, bookOk: 0 };
-            statsMap[lop].total++;
-            if (s[COL.GENDER] === "Nam") statsMap[lop].nam++;
-            else if (s[COL.GENDER] === "Nữ") statsMap[lop].nu++;
-            if (s[COL.HARD] === "Có") statsMap[lop].hard++;
-            if (s.bookType === "OK") statsMap[lop].bookOk++;
-        });
-
-        Object.keys(statsMap).sort().forEach((lop, index) => {
-            const d = statsMap[lop];
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${index + 1}</td>
-                <td style="font-weight:600">${lop}</td>
-                <td style="text-align: center;">${d.total}</td>
-                <td style="text-align: center; color: #0369a1;">${d.nam}</td>
-                <td style="text-align: center; color: #be185d;">${d.nu}</td>
-                <td style="text-align: center;"><span class="${d.hard > 0 ? 'tag tag-hard' : ''}">${d.hard}</span></td>
-                <td style="text-align: center; color: #166534; font-weight:600">${d.bookOk}</td>
-            `;
-            statsBody.appendChild(tr);
-        });
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        XLSX.writeFile(wb, name + ".xlsx");
     }
 
-    // --- XUẤT EXCEL (SheetJS) ---
-
-    function exportToExcel() {
-        // Chuẩn bị dữ liệu sạch để xuất
-        const exportData = filteredData.map(item => ({
-            "MSSV": item[COL.MSSV],
-            "Họ và tên": item[COL.NAME],
-            "Lớp": item[COL.CLASS],
-            "Số điện thoại": item[COL.PHONE],
-            "Giới tính": item[COL.GENDER],
-            "Trạng thái Sổ": item.bookDisplay,
-            "Ghi chú Sổ": item.bookNote
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        // Chỉnh độ rộng cột
-        const wscols = [{wch:15}, {wch:25}, {wch:15}, {wch:15}, {wch:10}, {wch:25}, {wch:20}];
-        ws['!cols'] = wscols;
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Danh Sach Sinh Vien");
-        XLSX.writeFile(wb, "Danh_Sach_Sinh_Vien.xlsx");
-    }
-
-    function exportDifficultyExcel() {
-        const diffList = allData.filter(item => item[COL.HARD] === "Có");
-        
-        const exportData = diffList.map(item => ({
-            "MSSV": item[COL.MSSV],
-            "Họ và tên": item[COL.NAME],
-            "Lớp": item[COL.CLASS],
-            "Hoàn cảnh gia đình": item[COL.FAMILY]
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        const wscols = [{wch:15}, {wch:25}, {wch:15}, {wch:50}];
-        ws['!cols'] = wscols;
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Dien Kho Khan");
-        XLSX.writeFile(wb, "Sinh_Vien_Kho_Khan.xlsx");
-    }
-
-    function exportStatsToExcel() {
-        const table = document.getElementById("statsTable");
-        const ws = XLSX.utils.table_to_sheet(table);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Thong Ke");
-        XLSX.writeFile(wb, "Bao_Cao_Thong_Ke.xlsx");
-    }
-
-    function showActivity(mssv, name) {
-        const list = activityData.filter(a => a["Mã sinh viên"]?.toString() === mssv.toString());
-        document.getElementById("modalTitle").textContent = `📌 Hoạt động: ${name}`;
-        let html = list.length ? "" : "<p style='text-align:center; color:#64748b'>Chưa có ghi nhận hoạt động nào.</p>";
-        list.forEach(a => {
-            html += `<div style="padding:10px; border-left:3px solid var(--primary-color); background:#eff6ff; margin-bottom:8px; border-radius:0 8px 8px 0;">
-                <b>${a["Hoạt động"] || "N/A"}</b><br><small>${a["Ghi chú"] || ""}</small>
-            </div>`;
-        });
-        document.getElementById("activityContent").innerHTML = html;
-        document.getElementById("activityModal").style.display = "block";
-    }
-
-    function closeModal() { document.getElementById("activityModal").style.display = "none"; }
-    window.onclick = (e) => { if(e.target.className === 'modal') closeModal(); }
+    window.onload = loadData;
 </script>
-
 </body>
 </html>
