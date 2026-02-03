@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hệ thống Quản lý Sinh viên Pro</title>
     
-    <!-- Font: Inter (Font hiện đại hơn cho Web App) -->
+    <!-- Font: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Excel Library -->
@@ -26,6 +26,9 @@
             
             --danger: #ef4444;        /* Red 500 */
             --danger-bg: #fef2f2;
+
+            --purple: #8b5cf6;        /* Violet 500 */
+            --purple-bg: #f5f3ff;
             
             --bg-body: #f3f4f6;       /* Gray 100 */
             --surface: #ffffff;
@@ -87,7 +90,7 @@
 
         /* --- DASHBOARD STATS --- */
         .stats-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin: 24px 0;
         }
         .stat-card {
             background: var(--surface); padding: 20px; border-radius: var(--radius);
@@ -101,14 +104,15 @@
             width: 36px; height: 36px; border-radius: 8px; display: flex; 
             align-items: center; justify-content: center; font-size: 16px; 
         }
-        .stat-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-value { font-size: 28px; font-weight: 800; color: var(--text-main); line-height: 1; }
+        .stat-title { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 24px; font-weight: 800; color: var(--text-main); line-height: 1; }
         
         /* Color variants for Stats */
         .sc-blue .stat-icon { background: var(--primary-light); color: var(--primary); }
         .sc-red .stat-icon { background: var(--danger-bg); color: var(--danger); }
         .sc-yellow .stat-icon { background: var(--warning-bg); color: var(--warning); }
         .sc-green .stat-icon { background: var(--success-bg); color: var(--success); }
+        .sc-purple .stat-icon { background: var(--purple-bg); color: var(--purple); }
 
         /* --- NAVIGATION TABS --- */
         .nav-wrapper {
@@ -125,7 +129,6 @@
         .nav-item:hover { background: var(--bg-body); color: var(--text-main); }
         .nav-item.active { background: var(--primary); color: white; font-weight: 600; box-shadow: 0 4px 6px -2px rgba(37, 99, 235, 0.4); }
         
-        /* Specific Styles for Tab Colors when Active */
         .nav-item.danger-tab.active { background: var(--danger); box-shadow: 0 4px 6px -2px rgba(239, 68, 68, 0.4); }
 
         /* --- FILTERS SECTION --- */
@@ -179,7 +182,7 @@
         }
         .table-scroll { overflow-x: auto; max-height: 70vh; }
 
-        table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 800px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
         
         thead th {
             background: #f8fafc; color: var(--text-secondary); font-size: 12px; 
@@ -215,6 +218,12 @@
         .g-male { background: #dbeafe; color: #1e40af; }
         .g-female { background: #fce7f3; color: #be185d; }
 
+        .tnxk-badge {
+            background: var(--purple-bg); color: var(--purple); border: 1px solid #ddd6fe;
+            padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+
         .vio-badge {
             width: 24px; height: 24px; border-radius: 50%; display: flex; 
             align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
@@ -246,10 +255,13 @@
         }
 
         /* --- RESPONSIVE ADJUSTMENTS --- */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+        }
         @media (max-width: 768px) {
             .container { padding: 0 12px; }
             .header-content { flex-direction: row; gap: 10px; }
-            .brand span { display: none; } /* Hide text logo on small mobile */
+            .brand span { display: none; }
             .brand-icon { width: 32px; height: 32px; font-size: 16px; }
             
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -261,9 +273,7 @@
             .action-group { flex-direction: column; }
             .btn, .count-badge { width: 100%; }
 
-            /* Fix input zoom on iOS */
             input, select, textarea { font-size: 16px !important; }
-            
             .nav-item { padding: 10px; font-size: 13px; }
         }
     </style>
@@ -314,6 +324,13 @@
                 </div>
                 <div class="stat-value" id="totalDiff">0</div>
             </div>
+            <div class="stat-card sc-purple">
+                <div class="stat-header">
+                    <span class="stat-title">Đội TNXK</span>
+                    <div class="stat-icon"><i class="fa-solid fa-shirt"></i></div>
+                </div>
+                <div class="stat-value" id="totalTNXK">0</div>
+            </div>
             <div class="stat-card sc-green">
                 <div class="stat-header">
                     <span class="stat-title">Đã Nộp Sổ</span>
@@ -345,7 +362,7 @@
             <div class="filter-section">
                 <div class="filter-group search-group">
                     <label>Tìm kiếm</label>
-                    <input type="text" id="f_search" class="form-control" placeholder="Nhập tên hoặc MSSV..." oninput="applyFilters()">
+                    <input type="text" id="f_search" class="form-control" placeholder="Nhập tên, MSSV hoặc SĐT..." oninput="applyFilters()">
                 </div>
 
                 <div class="filter-group">
@@ -356,12 +373,12 @@
                 </div>
 
                 <div class="filter-group">
-                    <label>Sổ Đoàn</label>
+                    <label>Trạng thái / Nhóm</label>
                     <select id="f_status" class="form-control" onchange="applyFilters()">
-                        <option value="ALL">Tất cả trạng thái</option>
-                        <option value="OK">Đã nộp đầy đủ</option>
-                        <option value="X">Thiếu thông tin</option>
-                        <option value="MISSING">Chưa nộp</option>
+                        <option value="ALL">Tất cả</option>
+                        <option value="OK">Đã nộp sổ</option>
+                        <option value="MISSING">Chưa nộp sổ</option>
+                        <option value="TNXK">Thành viên TNXK</option>
                     </select>
                 </div>
 
@@ -393,7 +410,9 @@
                                 <th width="120">MSSV</th>
                                 <th width="200">Họ và Tên</th>
                                 <th width="100">Lớp</th>
+                                <th width="120">SĐT</th>
                                 <th width="90">Giới tính</th>
+                                <th width="110">TNXK (Số lần)</th>
                                 <th width="160">Trạng thái Sổ</th>
                                 <th width="80" style="text-align: center;">Lỗi</th>
                             </tr>
@@ -433,7 +452,7 @@
             <div class="table-wrapper">
                 <div class="table-scroll">
                     <table>
-                        <thead><tr><th width="120">MSSV</th><th width="200">Họ và Tên</th><th width="100">Lớp</th><th>Mô tả hoàn cảnh</th></tr></thead>
+                        <thead><tr><th width="120">MSSV</th><th width="200">Họ và Tên</th><th width="100">Lớp</th><th width="120">SĐT</th><th>Mô tả hoàn cảnh</th></tr></thead>
                         <tbody id="tbodyDifficulty"></tbody>
                     </table>
                 </div>
@@ -458,6 +477,7 @@
                                 <th style="text-align: center;">Tổng SV</th>
                                 <th style="text-align: center;">Nam</th>
                                 <th style="text-align: center;">Nữ</th>
+                                <th style="text-align: center;">Tổng lượt trực</th>
                                 <th style="text-align: center;">Có Lỗi</th>
                                 <th style="text-align: center;">Đã nộp</th>
                             </tr>
@@ -471,42 +491,44 @@
     </div>
 
 <script>
-    // --- CONFIGURATION ---
     const URLS = {
         STUDENTS: "https://opensheet.elk.sh/1hd1-8lo1DxPOGrPwizlvcF7xPdyu9_dzvzwyziGjmfE/Câu trả lời biểu mẫu 1",
         BOOKS: "https://opensheet.elk.sh/12BNuvpjajh81Dsuuo_6NdROegNgu6reCp8KYttTnprc/TONG HOP",
-        VIOLATIONS: "https://opensheet.elk.sh/110EmYT7ecjpCMw-LcLtTDx0iYpWraR8jwbAIK_9Jyew/VIPHAM"
+        VIOLATIONS: "https://opensheet.elk.sh/110EmYT7ecjpCMw-LcLtTDx0iYpWraR8jwbAIK_9Jyew/VIPHAM",
+        TNXK: "https://opensheet.elk.sh/1WagQ3FSkESeaYWZurfH2XmjXKB7TdSTxa29k4-nNceM/TONG HOP"
     };
 
     const COLS = {
-        MSSV: "Mã số sinh viên:", NAME: "Họ Tên:", CLASS: "Chi đoàn trực thuộc:", GENDER: "Giới tính:",
-        HARD: "Bạn có thuộc diện hoàn cảnh khó khăn không?", FAMILY: "Tóm tắt hoàn cảnh gia đình:",
+        MSSV: "Mã số sinh viên:", 
+        NAME: "Họ Tên:", 
+        CLASS: "Chi đoàn trực thuộc:", 
+        GENDER: "Giới tính:",
+        PHONE: "Số điện thoại:", 
+        HARD: "Bạn có thuộc diện hoàn cảnh khó khăn không?", 
+        FAMILY: "Tóm tắt hoàn cảnh gia đình:",
         BOOK_MSSV: "MSSV", BOOK_STATUS: "Đã nộp sổ Đoàn",
-        VIO_MSSV: "MSSV", VIO_CONTENT: "Ghi chú"
+        VIO_MSSV: "MSSV", VIO_CONTENT: "Ghi chú",
+        TNXK_MSSV: "MSSV"
     };
 
     let globalData = [];
-
-    // --- UTILITIES ---
     const formatName = (str) => str ? str.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase()) : "";
-    
-    // --- MAIN FUNCTION ---
+
     async function loadData() {
         try {
-            const [students, books, violations] = await Promise.all([
+            const [students, books, violations, tnxkData] = await Promise.all([
                 fetch(URLS.STUDENTS).then(r => r.json()),
                 fetch(URLS.BOOKS).then(r => r.json()),
-                fetch(URLS.VIOLATIONS).then(r => r.json().catch(() => []))
+                fetch(URLS.VIOLATIONS).then(r => r.json().catch(() => [])),
+                fetch(URLS.TNXK).then(r => r.json().catch(() => []))
             ]);
 
-            // Process Data
             const vioMap = {};
             violations.forEach(v => {
                 const mssv = v[COLS.VIO_MSSV]?.toString().trim();
-                const content = v[COLS.VIO_CONTENT];
-                if(mssv && content) {
+                if(mssv && v[COLS.VIO_CONTENT]) {
                     if(!vioMap[mssv]) vioMap[mssv] = [];
-                    if(!vioMap[mssv].includes(content)) vioMap[mssv].push(content);
+                    vioMap[mssv].push(v[COLS.VIO_CONTENT]);
                 }
             });
 
@@ -514,6 +536,35 @@
             books.forEach(b => {
                 const mssv = b[COLS.BOOK_MSSV]?.toString().trim();
                 if(mssv) bookMap[mssv] = b[COLS.BOOK_STATUS];
+            });
+
+            // --- LOGIC ĐẾM TNXK CẢI TIẾN: CỘNG DỒN ---
+            const tnxkMap = {};
+            tnxkData.forEach(item => {
+                const mssv = item[COLS.TNXK_MSSV]?.toString().trim();
+                if (!mssv) return;
+
+                if (!tnxkMap[mssv]) tnxkMap[mssv] = 0;
+
+                // Kiểm tra xem dòng này có cột "Tổng" không
+                const totalKey = Object.keys(item).find(k => k.includes("Tổng") || k.includes("Số lần"));
+                
+                if (totalKey && !isNaN(parseInt(item[totalKey]))) {
+                    // Nếu có cột Tổng, cộng giá trị cột đó vào
+                    tnxkMap[mssv] += parseInt(item[totalKey]);
+                } else {
+                    // Nếu không có cột tổng, đếm tất cả chữ 'x' trong dòng này
+                    let rowCount = 0;
+                    Object.keys(item).forEach(key => {
+                        const val = item[key]?.toString().toLowerCase().trim();
+                        if (val === 'x' || val === '1' || val === 'v') {
+                            rowCount++;
+                        }
+                    });
+                    // Nếu đếm thủ công ra 0 nhưng dòng này tồn tại (dành cho bảng danh sách thành viên)
+                    // thì ít nhất tính là 1 (nếu bạn muốn), nhưng ở đây ta tính chính xác theo dấu x
+                    tnxkMap[mssv] += rowCount;
+                }
             });
 
             const seen = new Set();
@@ -527,7 +578,6 @@
                 let rawBook = bookMap[mssv] || "";
                 let check = rawBook.toString().trim().toLowerCase();
                 let bCode = "MISSING", bLabel = "Chưa nộp";
-
                 if (check === "x") { bCode = "X"; bLabel = "Thiếu tin"; }
                 else if (check.length > 0) { bCode = "OK"; bLabel = rawBook; }
 
@@ -535,61 +585,48 @@
                     mssv: mssv,
                     name: formatName(s[COLS.NAME]),
                     class: s[COLS.CLASS],
+                    phone: s[COLS.PHONE]?.toString() || "",
                     gender: s[COLS.GENDER],
                     isHard: s[COLS.HARD] === "Có",
                     family: s[COLS.FAMILY],
                     bookCode: bCode,
                     bookLabel: bLabel,
                     violations: vioMap[mssv] || [],
+                    tnxkCount: tnxkMap[mssv] || 0
                 });
             });
 
-            updateDashboard();
-            populateClassDropdown();
-            applyFilters();
-            renderSubViews();
-            
-            document.getElementById("loading-screen").style.opacity = "0";
-            setTimeout(() => { document.getElementById("loading-screen").style.display = "none"; }, 500);
-            
-            document.getElementById("lastUpdate").innerHTML = `<i class="fa-regular fa-clock"></i> Cập nhật: ${new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}`;
+            renderAll();
+            document.getElementById("loading-screen").style.display = "none";
+            document.getElementById("lastUpdate").innerHTML = `<i class="fa-regular fa-clock"></i> Cập nhật: ${new Date().toLocaleTimeString('vi-VN')}`;
 
         } catch (e) {
             console.error(e);
-            alert("Lỗi kết nối! Vui lòng tải lại trang.");
-            document.getElementById("loading-screen").style.display = "none";
+            alert("Lỗi dữ liệu. Kiểm tra kết nối Internet!");
         }
     }
 
-    // --- LOGIC FUNCTIONS ---
-    function updateDashboard() {
-        // Animation numbers
-        const animateValue = (id, end) => {
-            const obj = document.getElementById(id);
-            let start = 0;
-            if(end === 0) { obj.innerText = 0; return; }
-            let duration = 1000;
-            let range = end - start;
-            let current = start;
-            let increment = end > start ? 1 : -1;
-            let stepTime = Math.abs(Math.floor(duration / range));
-            let timer = setInterval(function() {
-                current += increment;
-                obj.innerHTML = current;
-                if (current == end) clearInterval(timer);
-            }, Math.max(stepTime, 10));
-        };
+    function renderAll() {
+        updateDashboard();
+        populateClassDropdown();
+        applyFilters();
+        renderSubViews();
+    }
 
-        animateValue("totalSV", globalData.length);
-        animateValue("totalVio", globalData.filter(d => d.violations.length > 0).length);
-        animateValue("totalDiff", globalData.filter(d => d.isHard).length);
-        animateValue("totalBook", globalData.filter(d => d.bookCode === "OK").length);
+    function updateDashboard() {
+        document.getElementById("totalSV").innerText = globalData.length;
+        document.getElementById("totalVio").innerText = globalData.filter(d => d.violations.length > 0).length;
+        document.getElementById("totalDiff").innerText = globalData.filter(d => d.isHard).length;
+        document.getElementById("totalTNXK").innerText = globalData.filter(d => d.tnxkCount > 0).length;
+        document.getElementById("totalBook").innerText = globalData.filter(d => d.bookCode === "OK").length;
     }
 
     function populateClassDropdown() {
         const classes = [...new Set(globalData.map(d => d.class).filter(Boolean))].sort();
         const sel = document.getElementById("f_class");
-        classes.forEach(c => sel.add(new Option(c, c)));
+        if (sel.options.length <= 1) {
+            classes.forEach(c => sel.add(new Option(c, c)));
+        }
     }
 
     function applyFilters() {
@@ -599,87 +636,66 @@
         const fSearch = document.getElementById("f_search").value.toLowerCase().trim();
 
         const filtered = globalData.filter(item => {
+            let statusMatch = (fStatus === 'ALL') || 
+                            (fStatus === 'TNXK' && item.tnxkCount > 0) || 
+                            (item.bookCode === fStatus);
+
             return (fClass === "ALL" || item.class === fClass) &&
-                   (fStatus === "ALL" || item.bookCode === fStatus) &&
+                   statusMatch &&
                    (fGender === "ALL" || item.gender === fGender) &&
                    (item.name.toLowerCase().includes(fSearch) || item.mssv.includes(fSearch));
         });
 
-        document.getElementById("countDisplay").innerHTML = `Hiển thị: <b>${filtered.length}</b>`;
+        document.getElementById("countDisplay").innerHTML = `SL: <b>${filtered.length}</b>`;
         const tbody = document.getElementById("tbodyList");
-        tbody.innerHTML = "";
-
-        if(filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-secondary)"><i class="fa-solid fa-inbox" style="font-size:30px; margin-bottom:10px; display:block"></i>Không tìm thấy dữ liệu phù hợp</td></tr>`;
-            return;
-        }
-
-        const frag = document.createDocumentFragment();
-        filtered.forEach(item => {
-            let statusClass = item.bookCode === 'OK' ? 'st-ok' : (item.bookCode === 'X' ? 'st-warn' : 'st-missing');
-            let genderClass = item.gender === 'Nam' ? 'g-male' : 'g-female';
-            let vioCount = item.violations.length;
-            let vioContent = vioCount > 0 
-                ? `<div class="vio-badge vio-yes">${vioCount}</div>` 
-                : `<div class="vio-badge vio-no"><i class="fa-solid fa-check"></i></div>`;
-
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td class="mono-font" style="color:var(--primary-dark)">${item.mssv}</td>
+        tbody.innerHTML = filtered.map(item => `
+            <tr>
+                <td class="mono-font">${item.mssv}</td>
                 <td style="font-weight:600">${item.name}</td>
                 <td>${item.class}</td>
-                <td><span class="gender-tag ${genderClass}">${item.gender}</span></td>
-                <td><span class="tag ${statusClass}"><span class="tag-dot"></span>${item.bookLabel}</span></td>
-                <td style="text-align:center">${vioContent}</td>
-            `;
-            frag.appendChild(tr);
-        });
-        tbody.appendChild(frag);
+                <td class="mono-font">${item.phone}</td>
+                <td><span class="gender-tag ${item.gender === 'Nam' ? 'g-male' : 'g-female'}">${item.gender}</span></td>
+                <td>${item.tnxkCount > 0 ? `<span class="tnxk-badge"><i class="fa-solid fa-shirt"></i> Trực: ${item.tnxkCount}</span>` : '---'}</td>
+                <td><span class="tag ${item.bookCode === 'OK' ? 'st-ok' : (item.bookCode === 'X' ? 'st-warn' : 'st-missing')}"><span class="tag-dot"></span>${item.bookLabel}</span></td>
+                <td style="text-align:center">${item.violations.length > 0 ? `<div class="vio-badge vio-yes">${item.violations.length}</div>` : `<div class="vio-badge vio-no"><i class="fa-solid fa-check"></i></div>`}</td>
+            </tr>
+        `).join('');
     }
 
     function renderSubViews() {
         // Vi Phạm
-        const vList = globalData.filter(d => d.violations.length > 0);
-        const tbV = document.getElementById("tbodyViolation");
-        tbV.innerHTML = "";
-        vList.forEach((d, i) => {
-            tbV.innerHTML += `<tr><td style="text-align:center; color:var(--text-secondary)">${i+1}</td><td class="mono-font">${d.mssv}</td><td style="font-weight:600">${d.name}</td><td>${d.class}</td><td class="wrap-text" style="color:var(--danger)">${d.violations.join(", ")}</td></tr>`;
-        });
+        document.getElementById("tbodyViolation").innerHTML = globalData.filter(d => d.violations.length > 0).map((d, i) => `
+            <tr><td>${i+1}</td><td class="mono-font">${d.mssv}</td><td style="font-weight:600">${d.name}</td><td>${d.class}</td><td class="wrap-text" style="color:var(--danger)">${d.violations.join(", ")}</td></tr>
+        `).join('');
 
         // Khó khăn
-        const dList = globalData.filter(d => d.isHard);
-        const tbD = document.getElementById("tbodyDifficulty");
-        tbD.innerHTML = "";
-        dList.forEach(d => {
-            tbD.innerHTML += `<tr><td class="mono-font">${d.mssv}</td><td style="font-weight:600">${d.name}</td><td>${d.class}</td><td class="wrap-text">${d.family}</td></tr>`;
-        });
+        document.getElementById("tbodyDifficulty").innerHTML = globalData.filter(d => d.isHard).map(d => `
+            <tr><td class="mono-font">${d.mssv}</td><td style="font-weight:600">${d.name}</td><td>${d.class}</td><td class="mono-font">${d.phone}</td><td class="wrap-text">${d.family}</td></tr>
+        `).join('');
 
-        // Thống kê
-        const map = {};
+        // Thống kê lớp
+        const stats = {};
         globalData.forEach(s => {
-            const c = s.class || "Khác";
-            if(!map[c]) map[c] = { total:0, nam:0, nu:0, vio:0, book:0 };
-            map[c].total++;
-            if(s.gender === "Nam") map[c].nam++; else map[c].nu++;
-            if(s.violations.length > 0) map[c].vio++;
-            if(s.bookCode === "OK") map[c].book++;
+            if(!stats[s.class]) stats[s.class] = { total:0, nam:0, nu:0, tnxk:0, vio:0, book:0 };
+            stats[s.class].total++;
+            if(s.gender === "Nam") stats[s.class].nam++; else stats[s.class].nu++;
+            stats[s.class].tnxk += s.tnxkCount;
+            if(s.violations.length > 0) stats[s.class].vio++;
+            if(s.bookCode === "OK") stats[s.class].book++;
         });
 
-        const tbS = document.getElementById("tbodyStats");
-        tbS.innerHTML = "";
-        Object.keys(map).sort().forEach((c, i) => {
-            const d = map[c];
-            tbS.innerHTML += `
-                <tr>
-                    <td style="text-align:center">${i+1}</td>
-                    <td style="font-weight:700">${c}</td>
-                    <td style="text-align:center; font-weight:600">${d.total}</td>
-                    <td style="text-align:center; color:#1e40af">${d.nam}</td>
-                    <td style="text-align:center; color:#be185d">${d.nu}</td>
-                    <td style="text-align:center; font-weight:700; color:${d.vio>0 ? 'var(--danger)' : '#e5e7eb'}">${d.vio}</td>
-                    <td style="text-align:center; font-weight:700; color:var(--success)">${d.book}</td>
-                </tr>`;
-        });
+        document.getElementById("tbodyStats").innerHTML = Object.keys(stats).sort().map((c, i) => `
+            <tr>
+                <td style="text-align:center">${i+1}</td>
+                <td style="font-weight:700">${c}</td>
+                <td style="text-align:center">${stats[c].total}</td>
+                <td style="text-align:center">${stats[c].nam}</td>
+                <td style="text-align:center">${stats[c].nu}</td>
+                <td style="text-align:center; color:var(--purple); font-weight:700">${stats[c].tnxk}</td>
+                <td style="text-align:center; color:var(--danger)">${stats[c].vio}</td>
+                <td style="text-align:center; color:var(--success)">${stats[c].book}</td>
+            </tr>
+        `).join('');
     }
 
     function switchTab(tab, btn) {
@@ -687,53 +703,29 @@
         document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(tab + 'View').classList.add('active');
-        
-        if(window.innerWidth < 768) {
-             // Smooth scroll adjust for mobile
-        }
     }
 
     function exportExcel(type) {
         const wb = XLSX.utils.book_new();
-        let ws, name;
+        let ws_data, filename;
 
-        const fClass = document.getElementById("f_class").value;
-        const fStatus = document.getElementById("f_status").value;
-        const fGender = document.getElementById("f_gender").value;
-        const fSearch = document.getElementById("f_search").value.toLowerCase().trim();
-
-        const getFilteredData = (sourceData) => {
-            return sourceData.filter(item => {
-                const matchClass = (fClass === "ALL" || item.class === fClass);
-                if (type === 'list') {
-                    const matchStatus = (fStatus === "ALL" || item.bookCode === fStatus);
-                    const matchGender = (fGender === "ALL" || item.gender === fGender);
-                    const matchSearch = (item.name.toLowerCase().includes(fSearch) || item.mssv.includes(fSearch));
-                    return matchClass && matchStatus && matchGender && matchSearch;
-                }
-                return matchClass; 
-            });
-        };
-
-        const dataToExport = getFilteredData(globalData);
-
-        if(type === 'list') {
-            const data = dataToExport.map(s => ({ MSSV: s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Giới tính": s.gender, "Sổ Đoàn": s.bookLabel, "SL Vi phạm": s.violations.length }));
-            ws = XLSX.utils.json_to_sheet(data); name = "DS_TongHop";
-        } else if(type === 'violation') {
-            const vioList = dataToExport.filter(d => d.violations.length > 0);
-            const data = vioList.map((s,i) => ({ STT: i+1, MSSV: s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Nội dung": s.violations.join(", ") }));
-            ws = XLSX.utils.json_to_sheet(data); name = "DS_ViPham";
-        } else if(type === 'difficulty') {
-            const diffList = dataToExport.filter(d => d.isHard);
-            const data = diffList.map(s => ({ MSSV: s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Hoàn cảnh": s.family }));
-            ws = XLSX.utils.json_to_sheet(data); name = "DS_KhoKhan";
-        } else {
-            ws = XLSX.utils.table_to_sheet(document.getElementById("statsTable")); name = "BaoCao_SoLieu";
+        if (type === 'list') {
+            ws_data = globalData.map(s => ({ "MSSV": s.mssv, "Họ Tên": s.name, "Lớp": s.class, "TNXK": s.tnxkCount, "Sổ Đoàn": s.bookLabel }));
+            filename = "Danh_Sach_Tong_Hop";
+        } else if (type === 'violation') {
+            ws_data = globalData.filter(d => d.violations.length > 0).map(s => ({ "MSSV": s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Vi Phạm": s.violations.join(", ") }));
+            filename = "Danh_Sach_Vi_Pham";
+        } else if (type === 'stats') {
+            const table = document.getElementById("statsTable");
+            const ws = XLSX.utils.table_to_sheet(table);
+            XLSX.utils.book_append_sheet(wb, ws, "Thống kê");
+            XLSX.writeFile(wb, "Bao_Cao_Thong_Ke.xlsx");
+            return;
         }
-        
-        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-        XLSX.writeFile(wb, name + ".xlsx");
+
+        const ws = XLSX.utils.json_to_sheet(ws_data);
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
+        XLSX.writeFile(wb, filename + ".xlsx");
     }
 
     window.onload = loadData;
