@@ -493,7 +493,7 @@
 <script>
     const URLS = {
         STUDENTS: "https://opensheet.elk.sh/1hd1-8lo1DxPOGrPwizlvcF7xPdyu9_dzvzwyziGjmfE/Câu trả lời biểu mẫu 1",
-        BOOKS: "https://opensheet.elk.sh/12BNuvpjajh81Dsuuo_6NdROegNgu6reCp8KYttTnprc/TONG HOP",
+        BOOKS: "https://opensheet.elk.sh/12BNuvpjajh81Dsuuo_6NdROegNgu6reCp8KYttTnprc/04_02_2026",
         VIOLATIONS: "https://opensheet.elk.sh/110EmYT7ecjpCMw-LcLtTDx0iYpWraR8jwbAIK_9Jyew/VIPHAM",
         TNXK: "https://opensheet.elk.sh/1WagQ3FSkESeaYWZurfH2XmjXKB7TdSTxa29k4-nNceM/TONG HOP"
     };
@@ -706,27 +706,84 @@
     }
 
     function exportExcel(type) {
-        const wb = XLSX.utils.book_new();
-        let ws_data, filename;
+    const wb = XLSX.utils.book_new();
+    let ws_data = [];
+    let filename = "";
 
-        if (type === 'list') {
-            ws_data = globalData.map(s => ({ "MSSV": s.mssv, "Họ Tên": s.name, "Lớp": s.class, "TNXK": s.tnxkCount, "Sổ Đoàn": s.bookLabel }));
-            filename = "Danh_Sach_Tong_Hop";
-        } else if (type === 'violation') {
-            ws_data = globalData.filter(d => d.violations.length > 0).map(s => ({ "MSSV": s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Vi Phạm": s.violations.join(", ") }));
-            filename = "Danh_Sach_Vi_Pham";
-        } else if (type === 'stats') {
-            const table = document.getElementById("statsTable");
-            const ws = XLSX.utils.table_to_sheet(table);
-            XLSX.utils.book_append_sheet(wb, ws, "Thống kê");
-            XLSX.writeFile(wb, "Bao_Cao_Thong_Ke.xlsx");
-            return;
-        }
+    if (type === 'list') {
+        // 1. Lấy các giá trị bộ lọc hiện tại
+        const fClass = document.getElementById("f_class").value;
+        const fStatus = document.getElementById("f_status").value;
+        const fGender = document.getElementById("f_gender").value;
+        const fSearch = document.getElementById("f_search").value.toLowerCase().trim();
 
-        const ws = XLSX.utils.json_to_sheet(ws_data);
-        XLSX.utils.book_append_sheet(wb, ws, "Data");
-        XLSX.writeFile(wb, filename + ".xlsx");
+        // 2. Lọc dữ liệu dựa trên các giá trị trên (Giống hệt applyFilters)
+        const filtered = globalData.filter(item => {
+            let statusMatch = (fStatus === 'ALL') || 
+                            (fStatus === 'TNXK' && item.tnxkCount > 0) || 
+                            (item.bookCode === fStatus);
+
+            return (fClass === "ALL" || item.class === fClass) &&
+                   statusMatch &&
+                   (fGender === "ALL" || item.gender === fGender) &&
+                   (item.name.toLowerCase().includes(fSearch) || item.mssv.includes(fSearch));
+        });
+
+        // 3. Map dữ liệu đã lọc sang định dạng Excel
+        ws_data = filtered.map(s => ({
+            "MSSV": s.mssv,
+            "Họ Tên": s.name,
+            "Lớp": s.class,
+            "SĐT": s.phone,
+            "Giới tính": s.gender,
+            "Số lần TNXK": s.tnxkCount,
+            "Trạng thái Sổ": s.bookLabel,
+            "Số lỗi vi phạm": s.violations.length
+        }));
+        
+        filename = "Danh_Sach_Loc_Theo_Yeu_Cau";
+        if(fClass !== "ALL") filename += "_" + fClass;
+
+    } else if (type === 'violation') {
+        // Xuất danh sách vi phạm (vẫn giữ logic cũ hoặc có thể thêm lọc theo lớp nếu muốn)
+        ws_data = globalData.filter(d => d.violations.length > 0).map(s => ({
+            "MSSV": s.mssv,
+            "Họ Tên": s.name,
+            "Lớp": s.class,
+            "Nội dung Vi Phạm": s.violations.join(", ")
+        }));
+        filename = "Danh_Sach_Vi_Pham";
+
+    } else if (type === 'difficulty') {
+        // Xuất danh sách khó khăn
+        ws_data = globalData.filter(d => d.isHard).map(s => ({
+            "MSSV": s.mssv,
+            "Họ Tên": s.name,
+            "Lớp": s.class,
+            "SĐT": s.phone,
+            "Hoàn cảnh": s.family
+        }));
+        filename = "Danh_Sach_SV_Kho_Khan";
+
+    } else if (type === 'stats') {
+        // Xuất báo cáo thống kê từ bảng thống kê
+        const table = document.getElementById("statsTable");
+        const ws = XLSX.utils.table_to_sheet(table);
+        XLSX.utils.book_append_sheet(wb, ws, "Thống kê");
+        XLSX.writeFile(wb, "Bao_Cao_Thong_Ke.xlsx");
+        return;
     }
+
+    // Thực hiện tạo file Excel và tải về
+    if (ws_data.length === 0) {
+        alert("Không có dữ liệu để xuất!");
+        return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(ws_data);
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    XLSX.writeFile(wb, filename + "_" + new Date().toLocaleDateString('vi-VN').replace(/\//g, '-') + ".xlsx");
+}
 
     window.onload = loadData;
 </script>
