@@ -8,372 +8,224 @@
     <!-- Font: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Excel Library -->
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <!-- PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            /* Modern Color Palette */
-            --primary: #3b82f6;       /* Blue 500 */
-            --primary-dark: #2563eb;  /* Blue 600 */
-            --primary-light: #eff6ff; /* Blue 50 */
-            
-            --success: #10b981;       /* Emerald 500 */
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #eff6ff;
+            --success: #10b981;
             --success-bg: #ecfdf5;
-            
-            --warning: #f59e0b;       /* Amber 500 */
+            --warning: #f59e0b;
             --warning-bg: #fffbeb;
-            
-            --danger: #ef4444;        /* Red 500 */
+            --danger: #ef4444;
             --danger-bg: #fef2f2;
-
-            --purple: #8b5cf6;        /* Violet 500 */
+            --purple: #8b5cf6;
             --purple-bg: #f5f3ff;
-            
-            --bg-body: #f3f4f6;       /* Gray 100 */
+            --bg-body: #f3f4f6;
             --surface: #ffffff;
-            
-            --text-main: #1f2937;     /* Gray 800 */
-            --text-secondary: #6b7280;/* Gray 500 */
-            
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
             --border: #e5e7eb;
             --radius: 16px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            
             --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        body { 
-            background-color: var(--bg-body); 
-            color: var(--text-main); 
-            padding-bottom: 60px; 
-            font-size: 14px;
-            line-height: 1.5;
-        }
+        body { background-color: var(--bg-body); color: var(--text-main); padding-bottom: 60px; font-size: 14px; line-height: 1.5; }
 
-        /* --- SCROLLBAR CUSTOMIZATION --- */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* --- HEADER --- */
-        .top-bar {
-            background: var(--surface);
-            padding: 16px 0;
-            position: sticky; top: 0; z-index: 100;
-            border-bottom: 1px solid var(--border);
-            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
-        }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
         
+        /* --- HEADER --- */
+        .top-bar {
+            background: var(--surface); padding: 16px 0; position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid var(--border); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+        }
         .header-content { display: flex; justify-content: space-between; align-items: center; }
-        
-        .brand { 
-            font-size: 20px; font-weight: 700; color: var(--primary-dark); 
-            display: flex; align-items: center; gap: 12px; 
-        }
-        .brand-icon {
-            width: 40px; height: 40px; background: var(--primary-light);
-            color: var(--primary); border-radius: 10px;
-            display: flex; align-items: center; justify-content: center; font-size: 18px;
-        }
+        .brand { font-size: 20px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 12px; }
+        .brand-icon { width: 40px; height: 40px; background: var(--primary-light); color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .update-info { font-size: 12px; font-weight: 500; color: var(--text-secondary); background: var(--bg-body); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
 
-        .update-info { 
-            font-size: 12px; font-weight: 500; color: var(--text-secondary);
-            background: var(--bg-body); padding: 6px 12px; border-radius: 20px;
-            display: flex; align-items: center; gap: 6px;
-        }
-
-        /* --- DASHBOARD STATS --- */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin: 24px 0;
-        }
-        .stat-card {
-            background: var(--surface); padding: 20px; border-radius: var(--radius);
-            box-shadow: var(--shadow); border: 1px solid var(--border);
-            position: relative; overflow: hidden; transition: var(--transition);
-        }
+        /* --- STATS --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin: 24px 0; }
+        .stat-card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); transition: var(--transition); }
         .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
-        
         .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        .stat-icon { 
-            width: 36px; height: 36px; border-radius: 8px; display: flex; 
-            align-items: center; justify-content: center; font-size: 16px; 
-        }
-        .stat-title { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-value { font-size: 24px; font-weight: 800; color: var(--text-main); line-height: 1; }
-        
-        /* Color variants for Stats */
+        .stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .stat-title { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+        .stat-value { font-size: 24px; font-weight: 800; color: var(--text-main); }
         .sc-blue .stat-icon { background: var(--primary-light); color: var(--primary); }
         .sc-red .stat-icon { background: var(--danger-bg); color: var(--danger); }
         .sc-yellow .stat-icon { background: var(--warning-bg); color: var(--warning); }
-        .sc-green .stat-icon { background: var(--success-bg); color: var(--success); }
         .sc-purple .stat-icon { background: var(--purple-bg); color: var(--purple); }
+        .sc-green .stat-icon { background: var(--success-bg); color: var(--success); }
 
-        /* --- NAVIGATION TABS --- */
-        .nav-wrapper {
-            background: var(--surface); border-radius: var(--radius); padding: 6px;
-            box-shadow: var(--shadow); margin-bottom: 24px; border: 1px solid var(--border);
-            display: flex; overflow-x: auto; scrollbar-width: none;
-        }
-        .nav-item {
-            flex: 1; text-align: center; padding: 10px 16px; cursor: pointer;
-            font-weight: 500; color: var(--text-secondary); border-radius: 10px;
-            transition: var(--transition); white-space: nowrap; font-size: 14px;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .nav-item:hover { background: var(--bg-body); color: var(--text-main); }
-        .nav-item.active { background: var(--primary); color: white; font-weight: 600; box-shadow: 0 4px 6px -2px rgba(37, 99, 235, 0.4); }
-        
-        .nav-item.danger-tab.active { background: var(--danger); box-shadow: 0 4px 6px -2px rgba(239, 68, 68, 0.4); }
+        /* --- NAVIGATION --- */
+        .nav-wrapper { background: var(--surface); border-radius: var(--radius); padding: 6px; box-shadow: var(--shadow); margin-bottom: 24px; border: 1px solid var(--border); display: flex; overflow-x: auto; }
+        .nav-item { flex: 1; text-align: center; padding: 10px 16px; cursor: pointer; font-weight: 500; color: var(--text-secondary); border-radius: 10px; transition: var(--transition); white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .nav-item.active { background: var(--primary); color: white; }
+        .nav-item.danger-tab.active { background: var(--danger); }
 
-        /* --- FILTERS SECTION --- */
+        /* --- FILTERS & MULTISELECT --- */
         .filter-section {
             background: var(--surface); padding: 20px; border-radius: var(--radius);
             box-shadow: var(--shadow); margin-bottom: 24px; border: 1px solid var(--border);
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
-            gap: 16px; align-items: end;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end;
         }
-        
-        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; position: relative; }
         .filter-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-        
-        .form-control {
-            width: 100%; height: 42px; padding: 0 14px; 
-            border: 1px solid var(--border); border-radius: 10px;
-            font-size: 14px; color: var(--text-main); background: #fff;
-            transition: var(--transition); outline: none; appearance: none;
-        }
-        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
-        select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px; padding-right: 40px; }
+        .form-control { width: 100%; height: 42px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; background: #fff; }
 
-        .search-group { grid-column: span 2; }
-        @media (max-width: 900px) { .search-group { grid-column: span 1; } }
-
-        .action-group { display: flex; gap: 10px; align-items: flex-end; }
-        
-        .count-badge {
-            height: 42px; padding: 0 16px; border-radius: 10px;
-            background: var(--bg-body); color: var(--text-main); font-weight: 600;
-            display: flex; align-items: center; border: 1px solid var(--border);
-            white-space: nowrap;
+        /* Custom Multiselect */
+        .multiselect-container { position: relative; width: 100%; }
+        .multiselect-button {
+            height: 42px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px;
+            background: #fff; display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; font-size: 14px; transition: var(--transition);
         }
-
-        .btn {
-            height: 42px; padding: 0 20px; border: none; border-radius: 10px;
-            font-weight: 600; font-size: 14px; cursor: pointer; color: white;
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            transition: var(--transition); box-shadow: 0 2px 4px rgba(0,0,0,0.1); white-space: nowrap;
+        .multiselect-button:hover { border-color: var(--primary); }
+        .multiselect-list {
+            position: absolute; top: 48px; left: 0; right: 0; background: white;
+            border: 1px solid var(--border); border-radius: 12px; max-height: 280px;
+            overflow-y: auto; z-index: 1000; padding: 8px; box-shadow: var(--shadow-hover);
+            display: none;
         }
-        .btn:active { transform: scale(0.97); }
-        .btn-green { background: var(--success); } .btn-green:hover { background: #059669; }
-        .btn-red { background: var(--danger); } .btn-red:hover { background: #dc2626; }
-        .btn-blue { background: var(--primary); } .btn-blue:hover { background: #1d4ed8; }
+        .multiselect-list.show { display: block; }
+        .select-all-group { display: flex; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+        .btn-tiny { padding: 4px 8px; font-size: 11px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-body); cursor: pointer; flex: 1; }
+        .btn-tiny:hover { background: var(--primary-light); color: var(--primary); }
+        .class-option { display: flex; align-items: center; gap: 10px; padding: 8px; cursor: pointer; border-radius: 8px; }
+        .class-option:hover { background: var(--primary-light); }
+        .class-option input { width: 16px; height: 16px; cursor: pointer; }
 
-        /* --- TABLE STYLE --- */
-        .table-wrapper {
-            background: var(--surface); border-radius: var(--radius);
-            box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border);
-            position: relative;
-        }
+        .action-group { display: flex; gap: 10px; }
+        .count-badge { height: 42px; padding: 0 16px; border-radius: 10px; background: var(--bg-body); border: 1px solid var(--border); display: flex; align-items: center; font-weight: 600; white-space: nowrap; }
+        .btn { height: 42px; padding: 0 15px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition); font-size: 13px; }
+        .btn-green { background: var(--success); }
+        .btn-blue { background: var(--primary); }
+        .btn-red { background: var(--danger); }
+        .btn-outline { background: #fff; color: var(--text-main); border: 1px solid var(--border); }
+        .btn-outline:hover { background: var(--bg-body); }
+
+        /* --- TABLE --- */
+        .table-wrapper { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border); }
         .table-scroll { overflow-x: auto; max-height: 70vh; }
-
         table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
-        
-        thead th {
-            background: #f8fafc; color: var(--text-secondary); font-size: 12px; 
-            font-weight: 600; text-transform: uppercase; padding: 16px; text-align: left;
-            position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border);
-        }
-        
-        tbody td {
-            padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px;
-            vertical-align: middle; color: var(--text-main); white-space: nowrap;
-            transition: background 0.1s;
-        }
-        tbody tr:last-child td { border-bottom: none; }
+        thead th { background: #f8fafc; color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; padding: 16px; text-align: left; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
+        tbody td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-main); }
         tbody tr:hover td { background-color: var(--primary-light); }
+        .mono-font { font-family: monospace; font-weight: 600; color: var(--text-secondary); }
         
-        .wrap-text { white-space: normal; line-height: 1.4; min-width: 250px; }
-        .mono-font { font-family: 'SF Mono', 'Roboto Mono', monospace; font-weight: 500; color: var(--text-secondary); letter-spacing: -0.5px; }
-
-        /* Status Tags */
         .tag { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
-        .tag-dot { width: 6px; height: 6px; border-radius: 50%; }
-
-        .st-ok { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; } 
-        .st-ok .tag-dot { background: var(--success); }
-        
-        .st-warn { background: var(--warning-bg); color: #d97706; border: 1px solid #fde68a; } 
-        .st-warn .tag-dot { background: #d97706; }
-        
-        .st-missing { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; } 
-        .st-missing .tag-dot { background: var(--danger); }
+        .st-ok { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
+        .st-warn { background: var(--warning-bg); color: #d97706; border: 1px solid #fde68a; }
+        .st-missing { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; }
+        .tag-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
         .gender-tag { padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
         .g-male { background: #dbeafe; color: #1e40af; }
         .g-female { background: #fce7f3; color: #be185d; }
-
-        .tnxk-badge {
-            background: var(--purple-bg); color: var(--purple); border: 1px solid #ddd6fe;
-            padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
-            display: inline-flex; align-items: center; gap: 4px;
-        }
-
-        .vio-badge {
-            width: 24px; height: 24px; border-radius: 50%; display: flex; 
-            align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
-            margin: 0 auto;
-        }
-        .vio-yes { background: var(--danger); color: white; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4); }
+        .tnxk-badge { background: var(--purple-bg); color: var(--purple); border: 1px solid #ddd6fe; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+        .vio-badge { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+        .vio-yes { background: var(--danger); color: white; }
         .vio-no { color: #d1d5db; background: #f3f4f6; }
 
-        /* --- LOADING SCREEN --- */
-        #loading-screen {
-            position: fixed; inset: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px);
-            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .spinner {
-            width: 48px; height: 48px; border: 4px solid var(--border);
-            border-top: 4px solid var(--primary); border-radius: 50%;
-            animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite; margin-bottom: 20px;
-        }
+        #loading-screen { position: fixed; inset: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 15px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* --- SUB VIEWS --- */
         .view-section { display: none; animation: fadeIn 0.4s ease; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .view-header {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
-            font-size: 18px; font-weight: 700; color: var(--text-main);
-        }
-
-        /* --- RESPONSIVE ADJUSTMENTS --- */
-        @media (max-width: 1024px) {
-            .stats-grid { grid-template-columns: repeat(3, 1fr); }
-        }
         @media (max-width: 768px) {
-            .container { padding: 0 12px; }
-            .header-content { flex-direction: row; gap: 10px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .filter-section { grid-template-columns: 1fr; }
             .brand span { display: none; }
-            .brand-icon { width: 32px; height: 32px; font-size: 16px; }
-            
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-            .stat-card { padding: 16px; }
-            .stat-value { font-size: 22px; }
-            
-            .filter-section { display: flex; flex-direction: column; gap: 12px; align-items: stretch; padding: 16px; }
-            .search-group { width: 100%; }
-            .action-group { flex-direction: column; }
-            .btn, .count-badge { width: 100%; }
-
-            input, select, textarea { font-size: 16px !important; }
-            .nav-item { padding: 10px; font-size: 13px; }
+            .action-group { flex-wrap: wrap; }
         }
+
+        /* PDF Styles */
+        .pdf-header { display: none; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .pdf-mode .pdf-header { display: block; }
+        .pdf-mode .no-pdf { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- LOADING SCREEN -->
     <div id="loading-screen">
         <div class="spinner"></div>
-        <div style="font-weight: 600; color: var(--text-main); font-size: 15px;">Đang đồng bộ dữ liệu...</div>
+        <div style="font-weight: 600;">Đang đồng bộ dữ liệu...</div>
     </div>
 
-    <!-- HEADER -->
-    <div class="top-bar">
+    <div class="top-bar no-pdf">
         <div class="container header-content">
             <div class="brand">
                 <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
                 <span>QUẢN LÝ ĐOÀN VIÊN</span>
             </div>
-            <div class="update-info" id="lastUpdate">
-                <i class="fa-regular fa-clock"></i> Đang tải...
-            </div>
+            <div class="update-info" id="lastUpdate"><i class="fa-regular fa-clock"></i> Đang tải...</div>
         </div>
     </div>
 
     <div class="container">
-        
-        <!-- DASHBOARD STATS -->
-        <div class="stats-grid">
-            <div class="stat-card sc-blue">
-                <div class="stat-header">
-                    <span class="stat-title">Tổng SV</span>
-                    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
-                </div>
-                <div class="stat-value" id="totalSV">0</div>
-            </div>
-            <div class="stat-card sc-red">
-                <div class="stat-header">
-                    <span class="stat-title">Vi Phạm</span>
-                    <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                </div>
-                <div class="stat-value" id="totalVio">0</div>
-            </div>
-            <div class="stat-card sc-yellow">
-                <div class="stat-header">
-                    <span class="stat-title">Khó Khăn</span>
-                    <div class="stat-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
-                </div>
-                <div class="stat-value" id="totalDiff">0</div>
-            </div>
-            <div class="stat-card sc-purple">
-                <div class="stat-header">
-                    <span class="stat-title">Đội TNXK</span>
-                    <div class="stat-icon"><i class="fa-solid fa-shirt"></i></div>
-                </div>
-                <div class="stat-value" id="totalTNXK">0</div>
-            </div>
-            <div class="stat-card sc-green">
-                <div class="stat-header">
-                    <span class="stat-title">Đã Nộp Sổ</span>
-                    <div class="stat-icon"><i class="fa-solid fa-book-bookmark"></i></div>
-                </div>
-                <div class="stat-value" id="totalBook">0</div>
-            </div>
+        <!-- STATS -->
+        <div class="stats-grid no-pdf">
+            <div class="stat-card sc-blue"><div class="stat-header"><span class="stat-title">Tổng SV</span><div class="stat-icon"><i class="fa-solid fa-users"></i></div></div><div class="stat-value" id="totalSV">0</div></div>
+            <div class="stat-card sc-red"><div class="stat-header"><span class="stat-title">Vi Phạm</span><div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div></div><div class="stat-value" id="totalVio">0</div></div>
+            <div class="stat-card sc-yellow"><div class="stat-header"><span class="stat-title">Khó Khăn</span><div class="stat-icon"><i class="fa-solid fa-hand-holding-heart"></i></div></div><div class="stat-value" id="totalDiff">0</div></div>
+            <div class="stat-card sc-purple"><div class="stat-header"><span class="stat-title">Đội TNXK</span><div class="stat-icon"><i class="fa-solid fa-shirt"></i></div></div><div class="stat-value" id="totalTNXK">0</div></div>
+            <div class="stat-card sc-green"><div class="stat-header"><span class="stat-title">Đã Nộp Sổ</span><div class="stat-icon"><i class="fa-solid fa-book-bookmark"></i></div></div><div class="stat-value" id="totalBook">0</div></div>
         </div>
 
         <!-- NAVIGATION -->
-        <div class="nav-wrapper">
-            <div class="nav-item active" onclick="switchTab('list', this)">
-                <i class="fa-solid fa-list-ul"></i> Tổng hợp
-            </div>
-            <div class="nav-item danger-tab" onclick="switchTab('violation', this)">
-                <i class="fa-solid fa-circle-exclamation"></i> Vi phạm
-            </div>
-            <div class="nav-item" onclick="switchTab('difficulty', this)">
-                <i class="fa-solid fa-heart"></i> Khó khăn
-            </div>
-            <div class="nav-item" onclick="switchTab('stats', this)">
-                <i class="fa-solid fa-chart-pie"></i> Báo cáo
-            </div>
+        <div class="nav-wrapper no-pdf">
+            <div class="nav-item active" onclick="switchTab('list', this)"><i class="fa-solid fa-list-ul"></i> Tổng hợp</div>
+            <div class="nav-item danger-tab" onclick="switchTab('violation', this)"><i class="fa-solid fa-circle-exclamation"></i> Vi phạm</div>
+            <div class="nav-item" onclick="switchTab('difficulty', this)"><i class="fa-solid fa-heart"></i> Khó khăn</div>
+            <div class="nav-item" onclick="switchTab('stats', this)"><i class="fa-solid fa-chart-pie"></i> Báo cáo</div>
         </div>
 
-        <!-- VIEW 1: DANH SÁCH TỔNG HỢP -->
+        <!-- VIEW: LIST -->
         <div id="listView" class="view-section active">
-            
-            <div class="filter-section">
-                <div class="filter-group search-group">
+            <div class="pdf-header"><h2>DANH SÁCH TỔNG HỢP SINH VIÊN</h2></div>
+            <div class="filter-section no-pdf">
+                <div class="filter-group" style="grid-column: span 1;">
                     <label>Tìm kiếm</label>
-                    <input type="text" id="f_search" class="form-control" placeholder="Nhập tên, MSSV hoặc SĐT..." oninput="applyFilters()">
+                    <input type="text" id="f_search" class="form-control" placeholder="Tên, MSSV..." oninput="applyFilters()">
                 </div>
 
                 <div class="filter-group">
-                    <label>Chi đoàn</label>
-                    <select id="f_class" class="form-control" onchange="applyFilters()">
-                        <option value="ALL">Tất cả lớp</option>
-                    </select>
+                    <label>Chi đoàn (Chọn nhiều)</label>
+                    <div class="multiselect-container">
+                        <div class="multiselect-button" onclick="toggleMultiselect()">
+                            <span id="selectedClassText">Tất cả lớp</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div id="classCheckboxList" class="multiselect-list">
+                            <div class="select-all-group">
+                                <button class="btn-tiny" onclick="selectAllClasses(true)">Chọn tất cả</button>
+                                <button class="btn-tiny" onclick="selectAllClasses(false)">Bỏ chọn hết</button>
+                            </div>
+                            <div id="checkboxItems"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="filter-group">
-                    <label>Trạng thái / Nhóm</label>
+                    <label>Nhóm SV</label>
                     <select id="f_status" class="form-control" onchange="applyFilters()">
                         <option value="ALL">Tất cả</option>
                         <option value="OK">Đã nộp sổ</option>
@@ -382,39 +234,19 @@
                     </select>
                 </div>
 
-                <div class="filter-group">
-                    <label>Giới tính</label>
-                    <select id="f_gender" class="form-control" onchange="applyFilters()">
-                        <option value="ALL">Tất cả</option>
-                        <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
-                    </select>
-                </div>
-
                 <div class="filter-group action-group">
-                    <div class="count-badge">
-                        <span id="countDisplay">SL: 0</span>
-                    </div>
-                    <button class="btn btn-green" onclick="exportExcel('list')">
-                        <i class="fa-solid fa-file-excel"></i> Xuất Excel
-                    </button>
+                    <div class="count-badge"><span id="countDisplay">SL: 0</span></div>
+                    <button class="btn btn-green" onclick="exportExcel('list')"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                    <button class="btn btn-outline" onclick="exportPDF('listView', 'Danh_Sach_SV')"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                 </div>
             </div>
 
-            <!-- TABLE -->
             <div class="table-wrapper">
                 <div class="table-scroll">
                     <table>
                         <thead>
                             <tr>
-                                <th width="120">MSSV</th>
-                                <th width="200">Họ và Tên</th>
-                                <th width="100">Lớp</th>
-                                <th width="120">SĐT</th>
-                                <th width="90">Giới tính</th>
-                                <th width="110">TNXK (Số lần)</th>
-                                <th width="160">Trạng thái Sổ</th>
-                                <th width="80" style="text-align: center;">Lỗi</th>
+                                <th>MSSV</th><th>Họ và Tên</th><th>Lớp</th><th>SĐT</th><th>Giới tính</th><th>Trực TNXK</th><th>Sổ Đoàn</th><th style="text-align:center">Lỗi</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyList"></tbody>
@@ -423,69 +255,43 @@
             </div>
         </div>
 
-        <!-- VIEW 2: VI PHẠM -->
+        <!-- VIEW: VIOLATION -->
         <div id="violationView" class="view-section">
-            <div class="view-header" style="color: var(--danger);">
-                <i class="fa-solid fa-triangle-exclamation"></i> Danh sách Vi Phạm (HK2_2025_2026)
-            </div>
-            <div class="filter-section" style="display: flex; justify-content: flex-end; padding: 12px;">
-                <button class="btn btn-red" onclick="exportExcel('violation')"><i class="fa-solid fa-file-export"></i> Tải danh sách vi phạm</button>
-            </div>
-            <div class="table-wrapper">
-                <div class="table-scroll">
-                    <table>
-                        <thead><tr><th width="50">STT</th><th width="120">MSSV</th><th width="200">Họ và Tên</th><th width="100">Lớp</th><th>Nội dung vi phạm</th></tr></thead>
-                        <tbody id="tbodyViolation"></tbody>
-                    </table>
+            <div class="pdf-header"><h2>DANH SÁCH SINH VIÊN VI PHẠM</h2></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px" class="no-pdf">
+                <h3 style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i> Danh sách Vi Phạm</h3>
+                <div class="action-group">
+                    <button class="btn btn-red" onclick="exportExcel('violation')"><i class="fa-solid fa-file-excel"></i> Xuất Excel</button>
+                    <button class="btn btn-outline" onclick="exportPDF('violationView', 'DS_Vi_Pham')"><i class="fa-solid fa-file-pdf"></i> Xuất PDF</button>
                 </div>
             </div>
+            <div class="table-wrapper"><div class="table-scroll"><table><thead><tr><th>STT</th><th>MSSV</th><th>Họ Tên</th><th>Lớp</th><th>Nội dung</th></tr></thead><tbody id="tbodyViolation"></tbody></table></div></div>
         </div>
 
-        <!-- VIEW 3: KHÓ KHĂN -->
+        <!-- VIEW: DIFFICULTY -->
         <div id="difficultyView" class="view-section">
-            <div class="view-header" style="color: var(--warning);">
-                <i class="fa-solid fa-hand-holding-heart"></i> Hoàn cảnh Khó khăn
-            </div>
-            <div class="filter-section" style="display: flex; justify-content: flex-end; padding: 12px;">
-                <button class="btn btn-blue" style="background: var(--warning);" onclick="exportExcel('difficulty')"><i class="fa-solid fa-file-csv"></i> Tải danh sách khó khăn</button>
-            </div>
-            <div class="table-wrapper">
-                <div class="table-scroll">
-                    <table>
-                        <thead><tr><th width="120">MSSV</th><th width="200">Họ và Tên</th><th width="100">Lớp</th><th width="120">SĐT</th><th>Mô tả hoàn cảnh</th></tr></thead>
-                        <tbody id="tbodyDifficulty"></tbody>
-                    </table>
+            <div class="pdf-header"><h2>DANH SÁCH SINH VIÊN HOÀN CẢNH KHÓ KHĂN</h2></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px" class="no-pdf">
+                <h3 style="color:var(--warning)"><i class="fa-solid fa-hand-holding-heart"></i> Hoàn cảnh Khó khăn</h3>
+                <div class="action-group">
+                    <button class="btn btn-blue" style="background:var(--warning)" onclick="exportExcel('difficulty')"><i class="fa-solid fa-file-excel"></i> Xuất Excel</button>
+                    <button class="btn btn-outline" onclick="exportPDF('difficultyView', 'DS_Kho_Khan')"><i class="fa-solid fa-file-pdf"></i> Xuất PDF</button>
                 </div>
             </div>
+            <div class="table-wrapper"><div class="table-scroll"><table><thead><tr><th>MSSV</th><th>Họ Tên</th><th>Lớp</th><th>SĐT</th><th>Mô tả</th></tr></thead><tbody id="tbodyDifficulty"></tbody></table></div></div>
         </div>
 
-        <!-- VIEW 4: THỐNG KÊ -->
+        <!-- VIEW: STATS -->
         <div id="statsView" class="view-section">
-            <div class="view-header" style="color: var(--primary);">
-                <i class="fa-solid fa-chart-pie"></i> Báo cáo tổng hợp
-            </div>
-            <div class="filter-section" style="display: flex; justify-content: flex-end; padding: 12px;">
-                <button class="btn btn-blue" onclick="exportExcel('stats')"><i class="fa-solid fa-download"></i> Tải Báo Cáo</button>
-            </div>
-            <div class="table-wrapper">
-                <div class="table-scroll">
-                    <table id="statsTable">
-                        <thead>
-                            <tr>
-                                <th style="text-align: center;" width="60">STT</th>
-                                <th>Chi đoàn</th>
-                                <th style="text-align: center;">Tổng SV</th>
-                                <th style="text-align: center;">Nam</th>
-                                <th style="text-align: center;">Nữ</th>
-                                <th style="text-align: center;">Tổng lượt trực</th>
-                                <th style="text-align: center;">Có Lỗi</th>
-                                <th style="text-align: center;">Đã nộp</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbodyStats"></tbody>
-                    </table>
+            <div class="pdf-header"><h2>BÁO CÁO TỔNG HỢP CHI ĐOÀN</h2></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px" class="no-pdf">
+                <h3><i class="fa-solid fa-chart-pie"></i> Báo cáo Chi đoàn</h3>
+                <div class="action-group">
+                    <button class="btn btn-blue" onclick="exportExcel('stats')"><i class="fa-solid fa-file-excel"></i> Xuất Excel</button>
+                    <button class="btn btn-outline" onclick="exportPDF('statsView', 'Bao_Cao_Chi_Doan')"><i class="fa-solid fa-file-pdf"></i> Xuất PDF</button>
                 </div>
             </div>
+            <div class="table-wrapper"><div class="table-scroll"><table id="statsTable"><thead><tr><th>STT</th><th>Chi đoàn</th><th>Tổng SV</th><th>Nam</th><th>Nữ</th><th>Lượt trực</th><th>Lỗi</th><th>Đã nộp sổ (Sổ/SS)</th></tr></thead><tbody id="tbodyStats"></tbody></table></div></div>
         </div>
 
     </div>
@@ -499,20 +305,25 @@
     };
 
     const COLS = {
-        MSSV: "Mã số sinh viên:", 
-        NAME: "Họ Tên:", 
-        CLASS: "Chi đoàn trực thuộc:", 
-        GENDER: "Giới tính:",
-        PHONE: "Số điện thoại:", 
-        HARD: "Bạn có thuộc diện hoàn cảnh khó khăn không?", 
-        FAMILY: "Tóm tắt hoàn cảnh gia đình:",
-        BOOK_MSSV: "MSSV", BOOK_STATUS: "Đã nộp sổ Đoàn",
-        VIO_MSSV: "MSSV", VIO_CONTENT: "Ghi chú",
-        TNXK_MSSV: "MSSV"
+        MSSV: "Mã số sinh viên:", NAME: "Họ Tên:", CLASS: "Chi đoàn trực thuộc:", GENDER: "Giới tính:",
+        PHONE: "Số điện thoại:", HARD: "Bạn có thuộc diện hoàn cảnh khó khăn không?", FAMILY: "Tóm tắt hoàn cảnh gia đình:",
+        BOOK_MSSV: "MSSV", BOOK_STATUS: "Đã nộp sổ Đoàn", VIO_MSSV: "MSSV", VIO_CONTENT: "Ghi chú", TNXK_MSSV: "MSSV"
     };
 
     let globalData = [];
+    let selectedClasses = [];
+
     const formatName = (str) => str ? str.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase()) : "";
+
+    window.onclick = function(e) {
+        if (!e.target.closest('.multiselect-container')) {
+            document.getElementById("classCheckboxList").classList.remove("show");
+        }
+    };
+
+    function toggleMultiselect() {
+        document.getElementById("classCheckboxList").classList.toggle("show");
+    }
 
     async function loadData() {
         try {
@@ -538,77 +349,59 @@
                 if(mssv) bookMap[mssv] = b[COLS.BOOK_STATUS];
             });
 
-            // --- LOGIC ĐẾM TNXK CẢI TIẾN: CỘNG DỒN ---
             const tnxkMap = {};
             tnxkData.forEach(item => {
                 const mssv = item[COLS.TNXK_MSSV]?.toString().trim();
                 if (!mssv) return;
-
                 if (!tnxkMap[mssv]) tnxkMap[mssv] = 0;
-
-                // Kiểm tra xem dòng này có cột "Tổng" không
                 const totalKey = Object.keys(item).find(k => k.includes("Tổng") || k.includes("Số lần"));
-                
                 if (totalKey && !isNaN(parseInt(item[totalKey]))) {
-                    // Nếu có cột Tổng, cộng giá trị cột đó vào
                     tnxkMap[mssv] += parseInt(item[totalKey]);
                 } else {
-                    // Nếu không có cột tổng, đếm tất cả chữ 'x' trong dòng này
                     let rowCount = 0;
                     Object.keys(item).forEach(key => {
                         const val = item[key]?.toString().toLowerCase().trim();
-                        if (val === 'x' || val === '1' || val === 'v') {
-                            rowCount++;
-                        }
+                        if (['x','1','v'].includes(val)) rowCount++;
                     });
-                    // Nếu đếm thủ công ra 0 nhưng dòng này tồn tại (dành cho bảng danh sách thành viên)
-                    // thì ít nhất tính là 1 (nếu bạn muốn), nhưng ở đây ta tính chính xác theo dấu x
                     tnxkMap[mssv] += rowCount;
                 }
             });
 
             const seen = new Set();
-            globalData = [];
-
-            students.forEach(s => {
+            globalData = students.filter(s => {
                 const mssv = s[COLS.MSSV]?.toString().trim();
-                if (!mssv || seen.has(mssv)) return;
+                if (!mssv || seen.has(mssv)) return false;
                 seen.add(mssv);
-
+                return true;
+            }).map(s => {
+                const mssv = s[COLS.MSSV].toString().trim();
                 let rawBook = bookMap[mssv] || "";
                 let check = rawBook.toString().trim().toLowerCase();
                 let bCode = "MISSING", bLabel = "Chưa nộp";
                 if (check === "x") { bCode = "X"; bLabel = "Thiếu tin"; }
                 else if (check.length > 0) { bCode = "OK"; bLabel = rawBook; }
 
-                globalData.push({
-                    mssv: mssv,
-                    name: formatName(s[COLS.NAME]),
-                    class: s[COLS.CLASS],
-                    phone: s[COLS.PHONE]?.toString() || "",
-                    gender: s[COLS.GENDER],
-                    isHard: s[COLS.HARD] === "Có",
-                    family: s[COLS.FAMILY],
-                    bookCode: bCode,
-                    bookLabel: bLabel,
-                    violations: vioMap[mssv] || [],
-                    tnxkCount: tnxkMap[mssv] || 0
-                });
+                return {
+                    mssv, name: formatName(s[COLS.NAME]), class: s[COLS.CLASS],
+                    phone: s[COLS.PHONE]?.toString() || "", gender: s[COLS.GENDER],
+                    isHard: s[COLS.HARD] === "Có", family: s[COLS.FAMILY],
+                    bookCode: bCode, bookLabel: bLabel,
+                    violations: vioMap[mssv] || [], tnxkCount: tnxkMap[mssv] || 0
+                };
             });
 
             renderAll();
             document.getElementById("loading-screen").style.display = "none";
             document.getElementById("lastUpdate").innerHTML = `<i class="fa-regular fa-clock"></i> Cập nhật: ${new Date().toLocaleTimeString('vi-VN')}`;
-
         } catch (e) {
             console.error(e);
-            alert("Lỗi dữ liệu. Kiểm tra kết nối Internet!");
+            alert("Lỗi tải dữ liệu!");
         }
     }
 
     function renderAll() {
         updateDashboard();
-        populateClassDropdown();
+        populateClassCheckboxes();
         applyFilters();
         renderSubViews();
     }
@@ -621,41 +414,52 @@
         document.getElementById("totalBook").innerText = globalData.filter(d => d.bookCode === "OK").length;
     }
 
-    function populateClassDropdown() {
+    function populateClassCheckboxes() {
         const classes = [...new Set(globalData.map(d => d.class).filter(Boolean))].sort();
-        const sel = document.getElementById("f_class");
-        if (sel.options.length <= 1) {
-            classes.forEach(c => sel.add(new Option(c, c)));
-        }
+        const container = document.getElementById("checkboxItems");
+        container.innerHTML = classes.map(c => `
+            <label class="class-option">
+                <input type="checkbox" value="${c}" class="class-cb" onchange="updateClassSelection()">
+                <span>${c}</span>
+            </label>
+        `).join('');
+    }
+
+    function selectAllClasses(status) {
+        document.querySelectorAll('.class-cb').forEach(cb => cb.checked = status);
+        updateClassSelection();
+    }
+
+    function updateClassSelection() {
+        const checked = document.querySelectorAll('.class-cb:checked');
+        selectedClasses = Array.from(checked).map(cb => cb.value);
+        const text = document.getElementById("selectedClassText");
+        if (selectedClasses.length === 0) text.innerText = "Tất cả lớp";
+        else if (selectedClasses.length === 1) text.innerText = selectedClasses[0];
+        else text.innerText = `Đã chọn ${selectedClasses.length} lớp`;
+        applyFilters();
     }
 
     function applyFilters() {
-        const fClass = document.getElementById("f_class").value;
         const fStatus = document.getElementById("f_status").value;
-        const fGender = document.getElementById("f_gender").value;
         const fSearch = document.getElementById("f_search").value.toLowerCase().trim();
 
         const filtered = globalData.filter(item => {
-            let statusMatch = (fStatus === 'ALL') || 
-                            (fStatus === 'TNXK' && item.tnxkCount > 0) || 
-                            (item.bookCode === fStatus);
-
-            return (fClass === "ALL" || item.class === fClass) &&
-                   statusMatch &&
-                   (fGender === "ALL" || item.gender === fGender) &&
-                   (item.name.toLowerCase().includes(fSearch) || item.mssv.includes(fSearch));
+            const classMatch = selectedClasses.length === 0 || selectedClasses.includes(item.class);
+            const statusMatch = fStatus === 'ALL' || (fStatus === 'TNXK' && item.tnxkCount > 0) || (item.bookCode === fStatus);
+            const searchMatch = item.name.toLowerCase().includes(fSearch) || item.mssv.includes(fSearch);
+            return classMatch && statusMatch && searchMatch;
         });
 
         document.getElementById("countDisplay").innerHTML = `SL: <b>${filtered.length}</b>`;
-        const tbody = document.getElementById("tbodyList");
-        tbody.innerHTML = filtered.map(item => `
+        document.getElementById("tbodyList").innerHTML = filtered.map(item => `
             <tr>
                 <td class="mono-font">${item.mssv}</td>
                 <td style="font-weight:600">${item.name}</td>
                 <td>${item.class}</td>
                 <td class="mono-font">${item.phone}</td>
                 <td><span class="gender-tag ${item.gender === 'Nam' ? 'g-male' : 'g-female'}">${item.gender}</span></td>
-                <td>${item.tnxkCount > 0 ? `<span class="tnxk-badge"><i class="fa-solid fa-shirt"></i> Trực: ${item.tnxkCount}</span>` : '---'}</td>
+                <td>${item.tnxkCount > 0 ? `<span class="tnxk-badge">Trực: ${item.tnxkCount}</span>` : '---'}</td>
                 <td><span class="tag ${item.bookCode === 'OK' ? 'st-ok' : (item.bookCode === 'X' ? 'st-warn' : 'st-missing')}"><span class="tag-dot"></span>${item.bookLabel}</span></td>
                 <td style="text-align:center">${item.violations.length > 0 ? `<div class="vio-badge vio-yes">${item.violations.length}</div>` : `<div class="vio-badge vio-no"><i class="fa-solid fa-check"></i></div>`}</td>
             </tr>
@@ -663,17 +467,17 @@
     }
 
     function renderSubViews() {
-        // Vi Phạm
+        // Vi phạm
         document.getElementById("tbodyViolation").innerHTML = globalData.filter(d => d.violations.length > 0).map((d, i) => `
-            <tr><td>${i+1}</td><td class="mono-font">${d.mssv}</td><td style="font-weight:600">${d.name}</td><td>${d.class}</td><td class="wrap-text" style="color:var(--danger)">${d.violations.join(", ")}</td></tr>
+            <tr><td>${i+1}</td><td class="mono-font">${d.mssv}</td><td>${d.name}</td><td>${d.class}</td><td style="color:var(--danger)">${d.violations.join(", ")}</td></tr>
         `).join('');
 
         // Khó khăn
         document.getElementById("tbodyDifficulty").innerHTML = globalData.filter(d => d.isHard).map(d => `
-            <tr><td class="mono-font">${d.mssv}</td><td style="font-weight:600">${d.name}</td><td>${d.class}</td><td class="mono-font">${d.phone}</td><td class="wrap-text">${d.family}</td></tr>
+            <tr><td class="mono-font">${d.mssv}</td><td>${d.name}</td><td>${d.class}</td><td>${d.phone}</td><td>${d.family}</td></tr>
         `).join('');
 
-        // Thống kê lớp
+        // Báo cáo chi đoàn
         const stats = {};
         globalData.forEach(s => {
             if(!stats[s.class]) stats[s.class] = { total:0, nam:0, nu:0, tnxk:0, vio:0, book:0 };
@@ -686,14 +490,14 @@
 
         document.getElementById("tbodyStats").innerHTML = Object.keys(stats).sort().map((c, i) => `
             <tr>
-                <td style="text-align:center">${i+1}</td>
-                <td style="font-weight:700">${c}</td>
-                <td style="text-align:center">${stats[c].total}</td>
-                <td style="text-align:center">${stats[c].nam}</td>
-                <td style="text-align:center">${stats[c].nu}</td>
-                <td style="text-align:center; color:var(--purple); font-weight:700">${stats[c].tnxk}</td>
-                <td style="text-align:center; color:var(--danger)">${stats[c].vio}</td>
-                <td style="text-align:center; color:var(--success)">${stats[c].book}</td>
+                <td>${i+1}</td>
+                <td><b>${c}</b></td>
+                <td>${stats[c].total}</td>
+                <td>${stats[c].nam}</td>
+                <td>${stats[c].nu}</td>
+                <td>${stats[c].tnxk}</td>
+                <td style="color:var(--danger)">${stats[c].vio}</td>
+                <td style="color:var(--success); font-weight:700">${stats[c].book}/${stats[c].total}</td>
             </tr>
         `).join('');
     }
@@ -706,84 +510,56 @@
     }
 
     function exportExcel(type) {
-    const wb = XLSX.utils.book_new();
-    let ws_data = [];
-    let filename = "";
+        const wb = XLSX.utils.book_new();
+        let ws_data = [];
+        let filename = "Export_" + type;
 
-    if (type === 'list') {
-        // 1. Lấy các giá trị bộ lọc hiện tại
-        const fClass = document.getElementById("f_class").value;
-        const fStatus = document.getElementById("f_status").value;
-        const fGender = document.getElementById("f_gender").value;
-        const fSearch = document.getElementById("f_search").value.toLowerCase().trim();
+        if (type === 'list') {
+            const fStatus = document.getElementById("f_status").value;
+            const fSearch = document.getElementById("f_search").value.toLowerCase().trim();
+            const filtered = globalData.filter(item => {
+                const classMatch = selectedClasses.length === 0 || selectedClasses.includes(item.class);
+                const statusMatch = fStatus === 'ALL' || (fStatus === 'TNXK' && item.tnxkCount > 0) || (item.bookCode === fStatus);
+                const searchMatch = item.name.toLowerCase().includes(fSearch) || item.mssv.includes(fSearch);
+                return classMatch && statusMatch && searchMatch;
+            });
+            ws_data = filtered.map(s => ({ "MSSV": s.mssv, "Họ Tên": s.name, "Lớp": s.class, "SĐT": s.phone, "Giới tính": s.gender, "Trực TNXK": s.tnxkCount, "Sổ Đoàn": s.bookLabel, "Số lỗi": s.violations.length }));
+        } else if (type === 'violation') {
+            ws_data = globalData.filter(d => d.violations.length > 0).map(s => ({ "MSSV": s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Vi phạm": s.violations.join(", ") }));
+        } else if (type === 'difficulty') {
+            ws_data = globalData.filter(d => d.isHard).map(s => ({ "MSSV": s.mssv, "Họ Tên": s.name, "Lớp": s.class, "Hoàn cảnh": s.family }));
+        } else if (type === 'stats') {
+            const ws = XLSX.utils.table_to_sheet(document.getElementById("statsTable"));
+            XLSX.utils.book_append_sheet(wb, ws, "Thống kê");
+            XLSX.writeFile(wb, "Bao_Cao_Thong_Ke.xlsx");
+            return;
+        }
 
-        // 2. Lọc dữ liệu dựa trên các giá trị trên (Giống hệt applyFilters)
-        const filtered = globalData.filter(item => {
-            let statusMatch = (fStatus === 'ALL') || 
-                            (fStatus === 'TNXK' && item.tnxkCount > 0) || 
-                            (item.bookCode === fStatus);
+        if (ws_data.length === 0) return alert("Không có dữ liệu!");
+        const ws = XLSX.utils.json_to_sheet(ws_data);
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
+        XLSX.writeFile(wb, filename + ".xlsx");
+    }
 
-            return (fClass === "ALL" || item.class === fClass) &&
-                   statusMatch &&
-                   (fGender === "ALL" || item.gender === fGender) &&
-                   (item.name.toLowerCase().includes(fSearch) || item.mssv.includes(fSearch));
-        });
-
-        // 3. Map dữ liệu đã lọc sang định dạng Excel
-        ws_data = filtered.map(s => ({
-            "MSSV": s.mssv,
-            "Họ Tên": s.name,
-            "Lớp": s.class,
-            "SĐT": s.phone,
-            "Giới tính": s.gender,
-            "Số lần TNXK": s.tnxkCount,
-            "Trạng thái Sổ": s.bookLabel,
-            "Số lỗi vi phạm": s.violations.length
-        }));
+    // Hàm xuất PDF
+    function exportPDF(viewId, fileName) {
+        const element = document.getElementById(viewId);
         
-        filename = "Danh_Sach_Loc_Theo_Yeu_Cau";
-        if(fClass !== "ALL") filename += "_" + fClass;
+        // Thêm class tạm thời để chỉnh style PDF
+        document.body.classList.add('pdf-mode');
+        
+        const opt = {
+            margin: [10, 5, 10, 5],
+            filename: fileName + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } // Khổ ngang cho đủ cột
+        };
 
-    } else if (type === 'violation') {
-        // Xuất danh sách vi phạm (vẫn giữ logic cũ hoặc có thể thêm lọc theo lớp nếu muốn)
-        ws_data = globalData.filter(d => d.violations.length > 0).map(s => ({
-            "MSSV": s.mssv,
-            "Họ Tên": s.name,
-            "Lớp": s.class,
-            "Nội dung Vi Phạm": s.violations.join(", ")
-        }));
-        filename = "Danh_Sach_Vi_Pham";
-
-    } else if (type === 'difficulty') {
-        // Xuất danh sách khó khăn
-        ws_data = globalData.filter(d => d.isHard).map(s => ({
-            "MSSV": s.mssv,
-            "Họ Tên": s.name,
-            "Lớp": s.class,
-            "SĐT": s.phone,
-            "Hoàn cảnh": s.family
-        }));
-        filename = "Danh_Sach_SV_Kho_Khan";
-
-    } else if (type === 'stats') {
-        // Xuất báo cáo thống kê từ bảng thống kê
-        const table = document.getElementById("statsTable");
-        const ws = XLSX.utils.table_to_sheet(table);
-        XLSX.utils.book_append_sheet(wb, ws, "Thống kê");
-        XLSX.writeFile(wb, "Bao_Cao_Thong_Ke.xlsx");
-        return;
+        html2pdf().set(opt).from(element).save().then(() => {
+            document.body.classList.remove('pdf-mode');
+        });
     }
-
-    // Thực hiện tạo file Excel và tải về
-    if (ws_data.length === 0) {
-        alert("Không có dữ liệu để xuất!");
-        return;
-    }
-
-    const ws = XLSX.utils.json_to_sheet(ws_data);
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    XLSX.writeFile(wb, filename + "_" + new Date().toLocaleDateString('vi-VN').replace(/\//g, '-') + ".xlsx");
-}
 
     window.onload = loadData;
 </script>
