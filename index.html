@@ -195,6 +195,8 @@
             <div class="nav-item active" onclick="switchTab('list', this)"><i class="fa-solid fa-list-ul"></i> Tổng hợp</div>
             <div class="nav-item danger-tab" onclick="switchTab('violation', this)"><i class="fa-solid fa-circle-exclamation"></i> Vi phạm</div>
             <div class="nav-item" onclick="switchTab('difficulty', this)"><i class="fa-solid fa-heart"></i> Khó khăn</div>
+            <div class="nav-item" onclick="switchTab('attendance', this)"><i class="fa-solid fa-calendar-check"></i> Sinh hoạt</div>
+
             <div class="nav-item" onclick="switchTab('stats', this)"><i class="fa-solid fa-chart-pie"></i> Báo cáo</div>
         </div>
 
@@ -280,7 +282,37 @@
             </div>
             <div class="table-wrapper"><div class="table-scroll"><table><thead><tr><th>MSSV</th><th>Họ Tên</th><th>Lớp</th><th>SĐT</th><th>Mô tả</th></tr></thead><tbody id="tbodyDifficulty"></tbody></table></div></div>
         </div>
-
+        <!-- VIEW: ATTENDANCE (NEW) -->
+        <div id="attendanceView" class="view-section">
+            <div class="pdf-header"><h2>THỐNG KÊ HOẠT ĐỘNG CHI ĐOÀN</h2></div>
+            <div class="filter-section no-pdf">
+                <div class="filter-group">
+                    <label>Chọn tháng</label>
+                    <select id="f_month" class="form-control" onchange="renderAttendance()"></select>
+                </div>
+                <div class="filter-group" style="grid-column: span 2;"></div>
+                <div class="filter-group action-group">
+                    <button class="btn btn-blue" onclick="exportExcel('attendance')"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                    <button class="btn btn-outline" onclick="exportPDF('attendanceView', 'Thong_Ke_Hoat_Dong')"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr style="background: #333; color: white;">
+                                <th style=" color:#000000">Chi đoàn</th>
+                                <th style="text-align:center; color:#000000">Sinh hoạt</th>
+                                <th style="text-align:center; color:#000000">Biên bản</th>
+                                <th style="text-align:center; color:#000000">Minh chứng</th>
+                                <th style="text-align:center; color:#000000">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyAttendance"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         <!-- VIEW: STATS -->
         <div id="statsView" class="view-section">
             <div class="pdf-header"><h2>BÁO CÁO TỔNG HỢP CHI ĐOÀN</h2></div>
@@ -301,7 +333,8 @@
         STUDENTS: "https://script.googleusercontent.com/macros/echo?user_content_key=AWDtjMX9FLp4oX3vJaTj90qTFvr0t-Sgf7W3dNNk3C6j7GNu6f_hBlw14IBFpy7yfvlo2uveSNNzvL6AWoNAP9FvkDUnXMqO42ilbyvlL8PLSga4NxSbfAsR0pkDG2-eOdAIKevqMaGMKuXDIjPpyOMGBKsh846Us9462ZqhmvosEk7LiTy9X9ZfX-2V1u7ex25Mjx0X5icv-SSDkUVQ4jYVBq7H25tBiQK5n77qHXVYY35JXBcPT664cDQnAXUf-SGuzEv4mzf1WlPHscvgufS_UqR8ItduyQ&lib=MnZ-BH3wxLX8N8Jnfkq6uN9GlEg2Jk7c7",
         BOOKS: "https://opensheet.elk.sh/12BNuvpjajh81Dsuuo_6NdROegNgu6reCp8KYttTnprc/TONG HOP",
         VIOLATIONS: "https://opensheet.elk.sh/110EmYT7ecjpCMw-LcLtTDx0iYpWraR8jwbAIK_9Jyew/VIPHAM",
-        TNXK: "https://opensheet.elk.sh/1WagQ3FSkESeaYWZurfH2XmjXKB7TdSTxa29k4-nNceM/TONG HOP"
+        TNXK: "https://opensheet.elk.sh/1WagQ3FSkESeaYWZurfH2XmjXKB7TdSTxa29k4-nNceM/TONG HOP",
+        ATTENDANCE: "https://script.googleusercontent.com/macros/echo?user_content_key=AWDtjMX6EX-Qc2vwYNsFz1L6GE8Qfwe4ymW38EwKua1tv85RtyezoMEE3FOcpKZtJI9wfi87sNd6wtEFwAD1kDSiRzuH6BHzs4KCXuG6pUqdiUA1ELfgUpyAgFh7D5f8ADTcD3nCEDkdpr-QiqwE-e-ooRUueDNexwdaGGy037Zb5Wu2j3SGAW-30rn4_1c3NWvaqA8H_g3Vjt0zwvitXkSlrNDoe_xCTKgMCGggWk2r5cbp0NLecqmRCAp2HKQisX1eHz4NS5PKycNkXqfwcew3AxvL6YtLsQ&lib=MyGv6BSmZqHMfAVEPbzjET141DSydvJkJ"
     };
 
     const COLS = {
@@ -312,6 +345,7 @@
 
     let globalData = [];
     let selectedClasses = [];
+    let attendanceData = { months: [], data: [] };
 
     const formatName = (str) => str ? str.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase()) : "";
 
@@ -327,12 +361,15 @@
 
     async function loadData() {
         try {
-            const [students, books, violations, tnxkData] = await Promise.all([
+            const [students, books, violations, tnxkData, attendance] = await Promise.all([
                 fetch(URLS.STUDENTS).then(r => r.json()),
                 fetch(URLS.BOOKS).then(r => r.json()),
                 fetch(URLS.VIOLATIONS).then(r => r.json().catch(() => [])),
-                fetch(URLS.TNXK).then(r => r.json().catch(() => []))
+                fetch(URLS.TNXK).then(r => r.json().catch(() => [])),
+                fetch(URLS.ATTENDANCE).then(r => r.json().catch(() => ({ months: [], data: [] })))
             ]);
+
+            attendanceData = attendance;
 
             const vioMap = {};
             violations.forEach(v => {
@@ -407,12 +444,48 @@
             alert("Lỗi tải dữ liệu!");
         }
     }
+    function initAttendanceFilter() {
+        const select = document.getElementById("f_month");
+        select.innerHTML = attendanceData.months.map(m => `<option value="${m}">Tháng ${m}</option>`).join('');
+    }
+
+    function renderAttendance() {
+        const monthSelect = document.getElementById("f_month");
+        const tbody = document.getElementById("tbodyAttendance");
+
+        if (!attendanceData.data.length) {
+            tbody.innerHTML = "";
+            return;
+        }
+
+        const month = monthSelect.value || attendanceData.months[0];
+        if (!monthSelect.value && month) {
+            monthSelect.value = month;
+        }
+
+        tbody.innerHTML = attendanceData.data.map(item => {
+            const mData = item.months?.[month];
+            if (!mData) return "";
+            const isDone = mData.status === "Hoàn thành";
+            return `
+                <tr>
+                    <td style="font-weight:600">${item.chiDoan}</td>
+                    <td style="text-align:center">${mData.sinhHoat ? '<i class="fa-solid fa-square-check check-icon"></i>' : '<i class="fa-solid fa-square-xmark x-icon"></i>'}</td>
+                    <td style="text-align:center">${mData.bienBan ? '<i class="fa-solid fa-square-check check-icon"></i>' : '<i class="fa-solid fa-square-xmark x-icon"></i>'}</td>
+                    <td style="text-align:center">${mData.minhChung ? '<i class="fa-solid fa-square-check check-icon"></i>' : '<i class="fa-solid fa-square-xmark x-icon"></i>'}</td>
+                    <td class="status-cell ${isDone ? 'bg-success-soft' : 'bg-danger-soft'}">${mData.status}</td>
+                </tr>
+            `;
+        }).join('');
+    }
 
     function renderAll() {
         updateDashboard();
         populateClassCheckboxes();
         applyFilters();
         renderSubViews();
+        initAttendanceFilter();
+        renderAttendance();
     }
 
     function updateDashboard() {
